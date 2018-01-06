@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="en">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="blog" />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.2" />
+
+
+
+
+
+
+<meta name="description" content="TF Mobile 和 TF Lite目前 TF Lite 还没有成熟，代码中散落各类实现和例子，有必要先了解一下两个相近的框架 TF Mobile 和 TF Lite。TF Mobile 早于 TF Lite，是Tensorflow最初在移动设备上的移植，它没有硬件加速，没有量化等优化，因此可以认为它是一个过度框架。而 TF Lite 实现了比 protobuf 更轻量级的 flatbuffer">
+<meta property="og:type" content="article">
+<meta property="og:title" content="tensorflow 2 ">
+<meta property="og:url" content="http://waynewolf.github.io/2018/01/06/tensorflow-2/index.html">
+<meta property="og:site_name" content="Wayne&#39;s Blog">
+<meta property="og:description" content="TF Mobile 和 TF Lite目前 TF Lite 还没有成熟，代码中散落各类实现和例子，有必要先了解一下两个相近的框架 TF Mobile 和 TF Lite。TF Mobile 早于 TF Lite，是Tensorflow最初在移动设备上的移植，它没有硬件加速，没有量化等优化，因此可以认为它是一个过度框架。而 TF Lite 实现了比 protobuf 更轻量级的 flatbuffer">
+<meta property="og:locale" content="en">
+<meta property="og:updated_time" content="2018-01-06T14:02:32.643Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="tensorflow 2 ">
+<meta name="twitter:description" content="TF Mobile 和 TF Lite目前 TF Lite 还没有成熟，代码中散落各类实现和例子，有必要先了解一下两个相近的框架 TF Mobile 和 TF Lite。TF Mobile 早于 TF Lite，是Tensorflow最初在移动设备上的移植，它没有硬件加速，没有量化等优化，因此可以认为它是一个过度框架。而 TF Lite 实现了比 protobuf 更轻量级的 flatbuffer">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    sidebar: {"position":"right","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://waynewolf.github.io/2018/01/06/tensorflow-2/"/>
+
+
+
+
+
+  <title>tensorflow 2  | Wayne's Blog</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-right page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Wayne's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">Spend life on wonderful things</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            About
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://waynewolf.github.io/2018/01/06/tensorflow-2/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Wayne Wolf">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Wayne's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">tensorflow 2 </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-01-06T20:56:00+08:00">
+                2018-01-06
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="TF-Mobile-和-TF-Lite"><a href="#TF-Mobile-和-TF-Lite" class="headerlink" title="TF Mobile 和 TF Lite"></a>TF Mobile 和 TF Lite</h1><p>目前 TF Lite 还没有成熟，代码中散落各类实现和例子，有必要先了解一下两个相近的框架 TF Mobile 和 TF Lite。TF Mobile 早于 TF Lite，是Tensorflow最初在移动设备上的移植，它没有硬件加速，没有量化等优化，因此可以认为它是一个过度框架。而 TF Lite 实现了比 protobuf 更轻量级的 flatbuffer，开销小，但目前不是所有的 op 都支持。总之，能用 TF Lite 的地方就尽量用，不能用再考虑 TF Mobile。</p>
+<h2 id="TF-Mobile-demo-analysis"><a href="#TF-Mobile-demo-analysis" class="headerlink" title="TF Mobile demo analysis"></a>TF Mobile demo analysis</h2><p>TF Mobile Camera 例子涵盖最基础的四个应用场景，classification, detection, stylize 和 sppech。<br>org.tensorflow.demo java库，主要API：</p>
+<ul>
+<li>TensorFlowInferenceInterface</li>
+</ul>
+<p>如何使用这个类可以参考<a href="https://github.com/tensorflow/tensorflow/blob/master/tensorflow/examples/android/src/org/tensorflow/demo/TensorFlowImageClassifier.java" target="_blank" rel="noopener">TensorFlowImageClassifier.java</a></p>
+<p>java 程序如果想用 tensorflow，可以使用 jcenter 仓库中的版本，在 build.gradle 加上如下几行即可：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">allprojects &#123;</span><br><span class="line">    repositories &#123;</span><br><span class="line">        jcenter()</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">dependencies &#123;</span><br><span class="line">    compile &apos;org.tensorflow:tensorflow-android:+&apos;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>java apk依赖两个c++ 库：</p>
+<ul>
+<li>libtensorflow_demo.so</li>
+<li>libtensorflow_inference.so</li>
+</ul>
+<p>其中 libtensorflow_demo.so 做 RGB-&gt;YUV转换，并不重要。而 libtensorflow_inference.so 是 tensorflow C++库，<br>有必要搞明白它怎么来的，便于以后自己编译。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$ cd $TF_REPO_ROOT</span><br><span class="line">$ bazel build -c opt //tensorflow/contrib/android:libtensorflow_inference.so \</span><br><span class="line">     --crosstool_top=//external:android/crosstool \</span><br><span class="line">     --host_crosstool_top=@bazel_tools//tools/cpp:toolchain \</span><br><span class="line">     --cpu=armeabi-v7a</span><br></pre></td></tr></table></figure>
+<p>把cpu替换成自己需要的架构。更详细信息参考<a href="https://github.com/tensorflow/tensorflow/tree/master/tensorflow/contrib/android" target="_blank" rel="noopener">这里</a></p>
+<p>要看demo效果，可以直接使用 nightly build 的demo，也可以用 android studio 打开 tensorflow/examples/android 目录进行编译。参考<a href="https://github.com/tensorflow/tensorflow/tree/master/tensorflow/examples/android" target="_blank" rel="noopener">这里</a></p>
+<h2 id="TF-Lite-demo"><a href="#TF-Lite-demo" class="headerlink" title="TF Lite demo"></a>TF Lite demo</h2><p>TF lite的例子中依然用到 tensorflow.aar 包，包含 libtensorflow_inference.so, libtensorflow_demo.so，它们是怎么来的，什么作用？</p>
+<p>代码目录</p>
+<ul>
+<li>tensorflow/contrib/lite/java/demo</li>
+</ul>
+<p>java包:</p>
+<ul>
+<li>org.tensorflow.lite.Interpreter</li>
+</ul>
+<p>使用 jcenter 中的 tensorflow.aar 报，包含：</p>
+<ul>
+<li>libtensorflowlite_jni.so (实现: tensorflow/contrib/lite/java/src/main/native)</li>
+<li>libtensorflow_inference.so (实现：tensorflow/contrib/android)</li>
+</ul>
+<h2 id="tensorflow-lite-c-库"><a href="#tensorflow-lite-c-库" class="headerlink" title="tensorflow-lite c++ 库"></a>tensorflow-lite c++ 库</h2><p>google 非常贴心地在 tensorflow 代码库中加入了 tensorlow-lite android apk, 运行起来豪不费劲，不过我更关心 tensorflow-lite 在嵌入式设备上的推断运行，以及在新场景下的finetune模型。</p>
+<p>自带的 tensorflow camera 例子，调用路径是 java -&gt; libtensorflow_jni.so，而我需要的是把 tensorflowlite 的cpp库，所以需要从头开始编译。</p>
+<p>用如下方式编译：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ cd $TF_ROOT</span><br><span class="line"># bazel build -c opt //tensorflow/contrib/lite:*</span><br></pre></td></tr></table></figure>
+<p>产生如下几个库，静态和动态都有：</p>
+<ul>
+<li>libcontext.{a,so}</li>
+<li>libframework.{a,so}</li>
+<li>libstring_util.{a,so}</li>
+</ul>
+<p>其实 tensorflow camera demo 的java代码使用的 libtensorflowlite_jni.so，就是把这几个静态库打包起来。</p>
+<p>接下来就可以使用tensorflow-lite c++接口了，接口文档在<a href="https://github.com/tensorflow/tensorflow/blob/master/tensorflow/contrib/lite/g3doc/apis.md" target="_blank" rel="noopener">这里</a></p>
+<h2 id="Go-through-TF-Lite-finetune-process"><a href="#Go-through-TF-Lite-finetune-process" class="headerlink" title="Go through TF Lite finetune process"></a>Go through TF Lite finetune process</h2><p><strong>Download pretrained TF Slim model</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ export MODEL_DIR=/path/to/your/model/dir</span><br><span class="line">$ wget -P $MODEL_DIR http://download.tensorflow.org/models/mobilenet_v1_1.0_224_2017_06_14.tar.gz</span><br><span class="line">$ tar zxvf $MODEL_DIR/mobilenet_v1_1.0_224_2017_06_14.tar.gz -C $MODEL_DIR</span><br></pre></td></tr></table></figure>
+<p>解压后的文件列表：</p>
+<ul>
+<li>mobilenet_v1_1.0_224.ckpt.data-00000-of-00001</li>
+<li>mobilenet_v1_1.0_224.ckpt.index</li>
+<li>mobilenet_v1_1.0_224.ckpt.meta</li>
+</ul>
+<p><strong>Export model</strong></p>
+<p>如果使用 TF Slim 生成的模型，必须把模型导出成GraphDef文件，输出文件后缀是.pb</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">$ cd $TF_MODELS_REPO_ROOT</span><br><span class="line">$ python3 export_inference_graph.py \</span><br><span class="line">    --alsologtostderr \</span><br><span class="line">    --model_name=mobilenet_v1 \</span><br><span class="line">    --image_size=224 \</span><br><span class="line">    --output_file=$MODEL_DIR/mobilenet_v1_224.pb</span><br></pre></td></tr></table></figure>
+<p>这里，export_inference_graph.py 读取 mobilenet_v1 的模型代码，把它存成GraphDev文件：mobilenet_v1_224.pb</p>
+<p><strong>Retrieve output node names</strong></p>
+<p>我们需要使用 summarize_graph 工具获取 pb 文件的output_node.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ cd $TENSORFLOW_REPO_ROOT</span><br><span class="line">$ bazel build tensorflow/tools/graph_transforms:summarize_graph</span><br><span class="line">$ bazel-bin/tensorflow/tools/graph_transforms/summarize_graph \</span><br><span class="line">  --in_graph=$MODEL_DIR/mobilenet_v1_224.pb</span><br></pre></td></tr></table></figure>
+<p>输出的结果最后一行如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">--output_layer=MobilenetV1/Predictions/Reshape_1</span><br></pre></td></tr></table></figure></p>
+<p><strong>Freeze graph</strong></p>
+<p>在模型能使用前，需要freeze graph，把 variable 转化成 constant。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">$ bazel build tensorflow/python/tools:freeze_graph</span><br><span class="line">$ bazel-bin/tensorflow/python/tools/freeze_graph \</span><br><span class="line">      --input_graph=$MODEL_DIR/mobilenet_v1_224.pb \</span><br><span class="line">      --input_checkpoint=$MODEL_DIR/mobilenet_v1_1.0_224.ckpt \</span><br><span class="line">      --input_binary=true --output_graph=$MODEL_DIR/frozen_mobilenet_v1_1.0_224.pb \</span><br><span class="line">      --output_node_names=MobilenetV1/Predictions/Reshape_1</span><br></pre></td></tr></table></figure>
+<p>这里的 input_checkpoint 不是一个 ckpt 文件名，而是一系列 ckpt 文件的公共前缀，这里是: mobilenet_v1_1.0_224.ckpt.<br>output_node_names 来自上一步的输出。</p>
+<p><strong>convert format to tflite</strong></p>
+<p>上一步生成的 frozen_mobilenet_v1_1.0_224.pb 并不是 tensorflow lite 格式，需要进一步转化，用到工具 toto.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">$ bazel build tensorflow/contrib/lite/toco:toco</span><br><span class="line">$ bazel-bin/tensorflow/contrib/lite/toco/toco \</span><br><span class="line">  --input_file=$MODEL_DIR/frozen_mobilenet_v1_1.0_224.pb \</span><br><span class="line">  --input_format=TENSORFLOW_GRAPHDEF  --output_format=TFLITE \</span><br><span class="line">  --output_file=$MODEL_DIR/mobilenet_v1_1.0_224.tflite --inference_type=FLOAT \</span><br><span class="line">  --input_type=FLOAT --input_arrays=input \</span><br><span class="line">  --output_arrays=MobilenetV1/Predictions/Reshape_1 --input_shapes=1,224,224,3</span><br></pre></td></tr></table></figure>
+<p>output_arrays 和 freeze graph 时的 output_node_names 一致， input_arrays 要通过 tensorboard 查看。<br>input_type 和 inference_type 应设置成 FLOAT，但如果使用量化的模型，可设置成 QUANTIZED。模型在训练的时候要标记 “fake quantization” 结点，<br>否则无法量化。</p>
+<p>目前 quantization 还没成功，先使用 FLOAT，参考 <a href="https://www.tensorflow.org/performance/quantization" target="_blank" rel="noopener">quantization</a> 一文。</p>
+<p>错误: Squeeze op 不支持， 参考 <a href="https://github.com/tensorflow/tensorflow/issues/14761" target="_blank" rel="noopener">https://github.com/tensorflow/tensorflow/issues/14761</a><br>, 目前 mobilenet/ssd 还不支持 tflite. (Jan 4th, 2018)，可以使用 google 转好的 <a href="wget https://storage.googleapis.com/download.tensorflow.org/models/mobilenet_v1_1.0_224_frozen.tgz">v1_1.0_224</a></p>
+<p>TF Lite的finetune流程的文档很多，散落在各处，主要流程参考<a href="https://github.com/tensorflow/tensorflow/tree/master/tensorflow/contrib/lite" target="_blank" rel="noopener">tf lite doc</a></p>
+<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>本文主要分析了 TF Mobile 和 TF Lite 两个框架之间的关系，基于这个两个框架的应用的架构，以及模型的转换。下一篇进入实战，看如何制作TFRecord 数据集。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/01/04/toward-cutting-edge-realtime-detection-on-mobile-device/" rel="next" title="toward cutting edge realtime detection on mobile device">
+                <i class="fa fa-chevron-left"></i> toward cutting edge realtime detection on mobile device
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/01/06/tensorflow-3/" rel="prev" title="tensorflow 3">
+                tensorflow 3 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.png"
+               alt="Wayne Wolf" />
+          <p class="site-author-name" itemprop="name">Wayne Wolf</p>
+           
+              <p class="site-description motion-element" itemprop="description"></p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">17</span>
+                <span class="site-state-item-name">posts</span>
+              </a>
+            </div>
+          
+
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">8</span>
+                <span class="site-state-item-name">tags</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/waynewolf" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                    
+                      GitHub
+                    
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://weibo.com/u/5658622153" target="_blank" title="Weibo">
+                  
+                    <i class="fa fa-fw fa-weibo"></i>
+                  
+                    
+                      Weibo
+                    
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+          <div class="links-of-blogroll motion-element links-of-blogroll-block">
+            <div class="links-of-blogroll-title">
+              <i class="fa  fa-fw fa-globe"></i>
+              Links
+            </div>
+            <ul class="links-of-blogroll-list">
+              
+                <li class="links-of-blogroll-item">
+                  <a href="http://hexo.io/" title="Hexo" target="_blank">Hexo</a>
+                </li>
+              
+                <li class="links-of-blogroll-item">
+                  <a href="http://www.sina.com.cn" title="Sina" target="_blank">Sina</a>
+                </li>
+              
+                <li class="links-of-blogroll-item">
+                  <a href="http://www.facebook.com" title="Facebook" target="_blank">Facebook</a>
+                </li>
+              
+            </ul>
+          </div>
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#TF-Mobile-和-TF-Lite"><span class="nav-number">1.</span> <span class="nav-text">TF Mobile 和 TF Lite</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#TF-Mobile-demo-analysis"><span class="nav-number">1.1.</span> <span class="nav-text">TF Mobile demo analysis</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#TF-Lite-demo"><span class="nav-number">1.2.</span> <span class="nav-text">TF Lite demo</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#tensorflow-lite-c-库"><span class="nav-number">1.3.</span> <span class="nav-text">tensorflow-lite c++ 库</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Go-through-TF-Lite-finetune-process"><span class="nav-number">1.4.</span> <span class="nav-text">Go through TF Lite finetune process</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#小结"><span class="nav-number">1.5.</span> <span class="nav-text">小结</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2013 - 
+  <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Wayne Wolf</span>
+</div>
+
+
+<div class="powered-by">
+  Powered by <a class="theme-link" href="https://hexo.io">Hexo</a>
+</div>
+
+<div class="theme-info">
+  Theme -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Pisces
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.2"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

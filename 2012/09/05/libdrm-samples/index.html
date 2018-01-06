@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="en">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="drm," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.2" />
+
+
+
+
+
+
+<meta name="description" content="BackgroundDRM(Direct Rendering Manager) is the kernel part of DRI(Direct Rendering Infrastructure) originally designed for Linux X display server. In this artical, we focus on how to use libdrm. DRM m">
+<meta name="keywords" content="drm">
+<meta property="og:type" content="article">
+<meta property="og:title" content="libdrm samples">
+<meta property="og:url" content="http://waynewolf.github.io/2012/09/05/libdrm-samples/index.html">
+<meta property="og:site_name" content="Wayne&#39;s Blog">
+<meta property="og:description" content="BackgroundDRM(Direct Rendering Manager) is the kernel part of DRI(Direct Rendering Infrastructure) originally designed for Linux X display server. In this artical, we focus on how to use libdrm. DRM m">
+<meta property="og:locale" content="en">
+<meta property="og:image" content="http://waynewolf.github.io/assets/drm-kms-core-data-structures.png">
+<meta property="og:updated_time" content="2018-01-03T13:29:24.625Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="libdrm samples">
+<meta name="twitter:description" content="BackgroundDRM(Direct Rendering Manager) is the kernel part of DRI(Direct Rendering Infrastructure) originally designed for Linux X display server. In this artical, we focus on how to use libdrm. DRM m">
+<meta name="twitter:image" content="http://waynewolf.github.io/assets/drm-kms-core-data-structures.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    sidebar: {"position":"right","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://waynewolf.github.io/2012/09/05/libdrm-samples/"/>
+
+
+
+
+
+  <title>libdrm samples | Wayne's Blog</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-right page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Wayne's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">Spend life on wonderful things</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            About
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://waynewolf.github.io/2012/09/05/libdrm-samples/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Wayne Wolf">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Wayne's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">libdrm samples</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2012-09-05T20:13:34+08:00">
+                2012-09-05
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h2 id="Background"><a href="#Background" class="headerlink" title="Background"></a>Background</h2><p>DRM(Direct Rendering Manager) is the kernel part of DRI(Direct Rendering Infrastructure) originally designed for Linux X display server. In this artical, we focus on how to use libdrm.</p>
+<p>DRM mainly has two parts:</p>
+<ul>
+<li>KMS: kernel mode setting</li>
+<li>GEM: Graphics Execution Manager, buffer management</li>
+</ul>
+<p>DRM major concepts:</p>
+<ul>
+<li>Framebuffer: Memory infomation such as width, height, depth, bpp, pixel format, etc.</li>
+<li>CRTC: Mode information, resolution, depth, polarity, porch, refresh rate, etc</li>
+<li>Encoder: convert digital signal from CRTC to appropriate analog level, eDP, MIPI, …</li>
+<li>Connector: Physical connector like HDMI，DVI-D，VGA，S-Video</li>
+</ul>
+<h2 id="librdrm"><a href="#librdrm" class="headerlink" title="librdrm"></a>librdrm</h2><p>DRM exports API through ioctl, libdrm is a user mode library to wrap these ioctls, please reference xf86drm.h in libdrm for detailed explanation. The general steps to use the libdrm are:</p>
+<ul>
+<li>open/drmOpen /dev/dri/cardN device node</li>
+<li>call drmModeGetResources, get all the drmModeRes resources. Resources include all the fb, crtc, encoder, connector, etc.</li>
+<li>loop through drmModeRes structure, call drmModeGetConnector, get the first connected connector(DRM_MODE_CONNECTED)</li>
+<li>drmModeConnector stores all the supporting mode, choose one from them.</li>
+<li>loop through drmModeRes，call drmModeGetEncoder. If the encoder matches with the selected mode, save the drmModeModeInfo for later use.</li>
+<li>create kms_driver, create buffer object，get the pitch of the BO，and map the BO to user space.</li>
+<li>draw on the BO using cairo or whatever graphic toolbox you like.</li>
+<li>get original display mode by calling drmModeGetCrtc, this will be used after program exit to restore the original mode.</li>
+<li>get frame buffer ID by calling drmModeAddFB, whose argument is BO handle.</li>
+<li>call drmModeSetCrtc with frame buffer ID, the BO attached with the FB is outputed to display.</li>
+</ul>
+<h2 id="a-basic-sample"><a href="#a-basic-sample" class="headerlink" title="a basic sample"></a>a basic sample</h2><p>The code snippet that follows these steps:</p>
+<pre><code>fd = open(&quot;/dev/dri/card0&quot;, O_RDWR);
+resources = drmModeGetResources(fd);
+</code></pre><p>Open drm device, get drmModeRes based on fd. drmModeRes is the central point for following operations, incuding searching connectors and encoders. This picture shows some of the structures in libdrm. The arrows are data flow.</p>
+<p><img src="/assets/drm-kms-core-data-structures.png" alt="drm-kms-core-data-structures" title="drm kms core data structures"></p>
+<pre><code>for(i=0; i &lt; resources-&gt;count_connectors; ++i){ 
+    connector = drmModeGetConnector(fd, resources-&gt;connectors[i]);
+    if(connector != NULL){
+        fprintf(stderr, &quot;connector %d found\n&quot;, connector-&gt;connector_id);
+        if(connector-&gt;connection == DRM_MODE_CONNECTED
+            &amp;&amp; connector-&gt;count_modes &gt; 0)
+            break;
+        drmModeFreeConnector(connector);
+    }
+    else
+        fprintf(stderr, &quot;get a null connector pointer\n&quot;);
+}
+if(i == resources-&gt;count_connectors){
+    fprintf(stderr, &quot;No active connector found.\n&quot;);
+    goto free_drm_res;
+}
+mode = connector-&gt;modes[0];
+fprintf(stderr, &quot;(%dx%d)\n&quot;, mode.hdisplay, mode.vdisplay);
+</code></pre><p>Search resource-&gt;connector array，get the first connected( DRM_MODE_CONNECTED ) connector. Get drmModeInfo by connector-&gt;modes[0].</p>
+<pre><code>for(i=0; i &lt; resources-&gt;count_encoders; ++i){ 
+    encoder = drmModeGetEncoder(fd, resources-&gt;encoders[i]);
+    if(encoder != NULL){
+        fprintf(stderr, &quot;encoder %d found\n&quot;, encoder-&gt;encoder_id);
+        if(encoder-&gt;encoder_id == connector-&gt;encoder_id);
+            break;
+        drmModeFreeEncoder(encoder);
+    } else
+        fprintf(stderr, &quot;get a null encoder pointer\n&quot;);
+}
+if(i == resources-&gt;count_encoders){
+    fprintf(stderr, &quot;No matching encoder with connector, shouldn&apos;t happen\n&quot;);
+    goto free_drm_res;
+}
+</code></pre><p>In all encoders (resource-&gt;encoders array), search the matched encoder with connected connector.</p>
+<pre><code>kms_create(fd, &amp;kms_driver);
+unsigned bo_attribs[] = { 
+    KMS_WIDTH,   mode.hdisplay,
+    KMS_HEIGHT,  mode.vdisplay,
+    KMS_BO_TYPE, KMS_BO_TYPE_SCANOUT_X8R8G8B8,
+    KMS_TERMINATE_PROP_LIST
+};
+kms_bo_create(kms_driver, bo_attribs, &amp;kms_bo);
+kms_bo_get_prop(kms_bo, KMS_PITCH, &amp;pitch);
+</code></pre><p>create kms_driver, create BO(buffer object), get the pitch of the BO.</p>
+<pre><code>kms_bo_map(kms_bo, &amp;map_buf);
+draw_buffer(map_buf, mode.hdisplay, mode.vdisplay, pitch); 
+</code></pre><p>map BO to user space, map_buf stores the memory address.</p>
+<pre><code>orig_crtc = drmModeGetCrtc(fd, encoder-&gt;crtc_id); 
+</code></pre><p>get original display mode by calling drmModeGetCrtc, this is used to restore display mode after program exits.</p>
+<pre><code>kms_bo_get_prop(kms_bo, KMS_HANDLE, &amp;bo_handle); 
+drmModeAddFB(fd, mode.hdisplay, mode.vdisplay, 24, 32, pitch, bo_handle, &amp;fb_id);
+drmModeSetCrtc(  
+        fd, encoder-&gt;crtc_id, fb_id, 
+        0, 0,     /* x, y */ 
+        &amp;connector-&gt;connector_id, 
+        1,         /* element count of the connectors array above*/
+        &amp;mode);
+</code></pre><p>get BO handle, call drmModeAddFB, get Frame Buffer id (fb_id). set display mode by calling drmModeSetCrtc，output the FB content(map_buf) associated with the BO.</p>
+<pre><code>getchar()
+ret = drmModeSetCrtc(fd, orig_crtc-&gt;crtc_id, orig_crtc-&gt;buffer_id,
+                orig_crtc-&gt;x, orig_crtc-&gt;y,
+                &amp;connector-&gt;connector_id, 1, &amp;orig_crtc-&gt;mode);
+</code></pre><p>wait for user input, restore the original display mode and quit the program.</p>
+<h2 id="page-flip"><a href="#page-flip" class="headerlink" title="page flip"></a>page flip</h2><p>Above sample draws on the same BO when it is displayed, thus it will probably make display flicker. Page flip use double buffer mechanisam, can be used to avoid flicker. Two frame buffers are created, each associated a BO. The BO being drawn is not the same BO being displayed. The application maintains two frame buffers. Picture is drawn on current frame buffer, and drmModePageFlip is called to send another frame buffer to crtc when vblank comes. Two frame buffers are switched in this way.</p>
+<p>In this example, select is used to monitor multiple fds.</p>
+<pre><code>struct termios old_tio, new_tio; 
+tcgetattr(STDIN_FILENO,&amp;old_tio);
+new_tio = old_tio;
+new_tio.c_lflag &amp;= (~ICANON &amp; ~ECHO);
+tcsetattr(STDIN_FILENO, TCSANOW, &amp;new_tio);
+</code></pre><p>close line buffer of stdin in order for the program to receive any key without input enter.</p>
+<pre><code>while(1){
+    struct timeval timeout = { 
+        .tv_sec = 3, 
+        .tv_usec = 0 
+    };
+    fd_set fds;
+
+    FD_ZERO(&amp;fds);
+    FD_SET(STDIN_FILENO, &amp;fds);
+    FD_SET(fd, &amp;fds);
+    ret = select(max(STDIN_FILENO, fd) + 1, &amp;fds, NULL, NULL, &amp;timeout);
+
+    if (ret &lt;= 0) {
+        continue;
+    } else if (FD_ISSET(STDIN_FILENO, &amp;fds)) {
+        char c = getchar();
+        if(c == &apos;q&apos; || c == 27)
+            break;
+    } else {
+        /* drm device fd data ready */
+        ret = drmHandleEvent(fd, &amp;evctx);
+        if (ret != 0) {
+            fprintf(stderr, &quot;drmHandleEvent failed: %s\n&quot;, strerror(errno));
+            break;
+        }
+    }
+}
+</code></pre><p>The main loop of the program. stdin is put into monitor list of select. Whenever terminal has input, select return ready. ESC or ‘q’ is used to quit the program. We use drmHandleEvent to handle event on the drm device. evctx is an instance of drmEventContext structure, evctx.page_flip_handler points to the page flip handler.</p>
+<pre><code>void page_flip_handler(int fd, unsigned int frame,
+      unsigned int sec, unsigned int usec, void *data)
+{
+    struct flip_context *context;
+    unsigned int new_fb_id;
+    struct timeval end;
+    double t;
+
+    context = data;
+    if (context-&gt;current_fb_id == context-&gt;fb_id[0])
+        new_fb_id = context-&gt;fb_id[1];
+    else
+        new_fb_id = context-&gt;fb_id[0];
+
+    drmModePageFlip(fd, context-&gt;crtc_id, new_fb_id,
+            DRM_MODE_PAGE_FLIP_EVENT, context);
+    context-&gt;current_fb_id = new_fb_id;
+    context-&gt;swap_count++;
+    if (context-&gt;swap_count == 60) {
+        gettimeofday(&amp;end, NULL);
+        t = end.tv_sec + end.tv_usec * 1e-6 -
+            (context-&gt;start.tv_sec + context-&gt;start.tv_usec * 1e-6);
+        fprintf(stderr, &quot;freq: %.02fHz\n&quot;, context-&gt;swap_count / t);
+        context-&gt;swap_count = 0;
+        context-&gt;start = end;
+    }
+} 
+</code></pre><p>page_flip_handler get current fb id, get next fb id, call drmModePageFlip. The next fb is set to crtc, frame buffer is swtiched.</p>
+<pre><code> ret = drmModeSetCrtc(fd, orig_crtc-&gt;crtc_id, orig_crtc-&gt;buffer_id,
+                orig_crtc-&gt;x, orig_crtc-&gt;y,
+                &amp;connector-&gt;connector_id, 1, &amp;orig_crtc-&gt;mode); 
+tcsetattr(STDIN_FILENO,TCSANOW,&amp;old_tio); 
+</code></pre><p>cleanup, restore work after program exists. tcsetattr is used to restore original terminal setting. </p>
+<h2 id="Appendix"><a href="#Appendix" class="headerlink" title="Appendix"></a>Appendix</h2><p><a href="/code/post/kms-pageflip.c">kms-pageflip.c</a></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/drm/" rel="tag"># drm</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2012/10/01/wayland-protocal-and-programming/" rel="prev" title="wayland protocal and programming">
+                wayland protocal and programming <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.png"
+               alt="Wayne Wolf" />
+          <p class="site-author-name" itemprop="name">Wayne Wolf</p>
+           
+              <p class="site-description motion-element" itemprop="description"></p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">17</span>
+                <span class="site-state-item-name">posts</span>
+              </a>
+            </div>
+          
+
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">8</span>
+                <span class="site-state-item-name">tags</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/waynewolf" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                    
+                      GitHub
+                    
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://weibo.com/u/5658622153" target="_blank" title="Weibo">
+                  
+                    <i class="fa fa-fw fa-weibo"></i>
+                  
+                    
+                      Weibo
+                    
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+          <div class="links-of-blogroll motion-element links-of-blogroll-block">
+            <div class="links-of-blogroll-title">
+              <i class="fa  fa-fw fa-globe"></i>
+              Links
+            </div>
+            <ul class="links-of-blogroll-list">
+              
+                <li class="links-of-blogroll-item">
+                  <a href="http://hexo.io/" title="Hexo" target="_blank">Hexo</a>
+                </li>
+              
+                <li class="links-of-blogroll-item">
+                  <a href="http://www.sina.com.cn" title="Sina" target="_blank">Sina</a>
+                </li>
+              
+                <li class="links-of-blogroll-item">
+                  <a href="http://www.facebook.com" title="Facebook" target="_blank">Facebook</a>
+                </li>
+              
+            </ul>
+          </div>
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Background"><span class="nav-number">1.</span> <span class="nav-text">Background</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#librdrm"><span class="nav-number">2.</span> <span class="nav-text">librdrm</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#a-basic-sample"><span class="nav-number">3.</span> <span class="nav-text">a basic sample</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#page-flip"><span class="nav-number">4.</span> <span class="nav-text">page flip</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Appendix"><span class="nav-number">5.</span> <span class="nav-text">Appendix</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2013 - 
+  <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Wayne Wolf</span>
+</div>
+
+
+<div class="powered-by">
+  Powered by <a class="theme-link" href="https://hexo.io">Hexo</a>
+</div>
+
+<div class="theme-info">
+  Theme -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Pisces
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.2"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

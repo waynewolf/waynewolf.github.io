@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="en">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="android," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.2" />
+
+
+
+
+
+
+<meta name="description" content="IntroductionSurfaceFlinger is the composition and display manager of android, it mainly plays two roles in the system:  Surface composition Buffer allocation on behalf of clients, interacts with clien">
+<meta name="keywords" content="android">
+<meta property="og:type" content="article">
+<meta property="og:title" content="surfaceflinger and client">
+<meta property="og:url" content="http://waynewolf.github.io/2014/06/22/surfaceflinger-and-client/index.html">
+<meta property="og:site_name" content="Wayne&#39;s Blog">
+<meta property="og:description" content="IntroductionSurfaceFlinger is the composition and display manager of android, it mainly plays two roles in the system:  Surface composition Buffer allocation on behalf of clients, interacts with clien">
+<meta property="og:locale" content="en">
+<meta property="og:image" content="http://waynewolf.github.io/images/post/surfaceflinger-as-consumer-and-producer.png">
+<meta property="og:updated_time" content="2018-01-03T13:29:24.625Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="surfaceflinger and client">
+<meta name="twitter:description" content="IntroductionSurfaceFlinger is the composition and display manager of android, it mainly plays two roles in the system:  Surface composition Buffer allocation on behalf of clients, interacts with clien">
+<meta name="twitter:image" content="http://waynewolf.github.io/images/post/surfaceflinger-as-consumer-and-producer.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    sidebar: {"position":"right","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://waynewolf.github.io/2014/06/22/surfaceflinger-and-client/"/>
+
+
+
+
+
+  <title>surfaceflinger and client | Wayne's Blog</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-right page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Wayne's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">Spend life on wonderful things</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            About
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://waynewolf.github.io/2014/06/22/surfaceflinger-and-client/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Wayne Wolf">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Wayne's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">surfaceflinger and client</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2014-06-22T18:43:49+08:00">
+                2014-06-22
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h2 id="Introduction"><a href="#Introduction" class="headerlink" title="Introduction"></a>Introduction</h2><p>SurfaceFlinger is the composition and display manager of android, it mainly plays two roles in the system:</p>
+<ul>
+<li>Surface composition</li>
+<li>Buffer allocation on behalf of clients, interacts with clients through Binder interface</li>
+</ul>
+<p>This article is based on KitKat 4.4.2.</p>
+<h2 id="How-client-draws-UI"><a href="#How-client-draws-UI" class="headerlink" title="How client draws UI"></a>How client draws UI</h2><p>ISurfaceComposer is the interface to talk to SurfaceFlinger, there’re two ways to get ISurfaceComposer interface in Client:</p>
+<pre><code>sp&lt;ISurfaceComposer&gt; composer;
+composer = ComposerService::getComposerService();
+</code></pre><p>or</p>
+<pre><code>getService(&quot;SurfaceFlinger&quot;, &amp;composer);
+</code></pre><p>ISurfaceComposerClient is the interface to create Surface. To get ISurfaceComposerClient interface, use the ISurfaceComposer instance returned above:</p>
+<pre><code>sp&lt;ISurfaceComposerClient&gt; composerClient = composer-&gt;createConnection();
+</code></pre><p>The above two methods can be combined in single step:</p>
+<pre><code>sp&lt;SurfaceComposerClient&gt; composerClient = new SurfaceComposerClient;
+</code></pre><p>To operate on Surface, you have to get SurfaceControl first, simply call createSurface on the SurfaceComposerClient instance:</p>
+<pre><code>sp&lt;SurfaceControl&gt; surfaceControl = composerClient-&gt;createSurface();
+</code></pre><p>And call getSurface on SurfaceControl instance, you can finally get Surface:</p>
+<pre><code>sp&lt;Surface&gt; surface = surfaceControl-&gt;getSurface();
+</code></pre><p>Get buffer to draw:</p>
+<pre><code>int Surface::lock(ANativeWindow_Buffer* outBuffer, ARect* inOutDirtyBounds);
+</code></pre><p>Draw on surface with whatever method you want.</p>
+<p>Complete drawing by calling:</p>
+<pre><code>int Surface::unlockAndPost();
+</code></pre><p>If some operations need atomic transaction, just wrap them inside:</p>
+<pre><code>SurfaceComposerClient::openGlobalTransaction();
+...
+SurfaceComposerClient::closeGlobalTransaction();
+</code></pre><h2 id="BufferQueue-and-Consumer-Provider"><a href="#BufferQueue-and-Consumer-Provider" class="headerlink" title="BufferQueue and Consumer/Provider"></a>BufferQueue and Consumer/Provider</h2><p>BufferQueue plays a central role in GraphicBuffer exchange process, two roles which are consumer and provider are designed to distinguish different entity and intension.<br>The producer of a BufferQueue can</p>
+<pre><code>queueBuffer
+dequeueBuffer
+</code></pre><p>The consumer of a BufferQueue can</p>
+<pre><code>acquireBuffer
+releaseBuffer
+</code></pre><p>Back to BufferQueue, usually client application create Surface, it’s provider end of a BufferQueue, SurfaceFlinger acts as consumer of the Surface provided by client. However, SurfaceFlinger also acts as provider as regard to FrameBufferSurface, which is consumed by display.</p>
+<p>These APIs support android native sync to manage concurrency. Android native sync is introduced in 4.x.x. It’s a framework used by native code, while at the same time, graphic drivers haver to implement correspondance interface. Android sync is out of the scope of this article.</p>
+<h2 id="Drawing-a-frame"><a href="#Drawing-a-frame" class="headerlink" title="Drawing a frame"></a>Drawing a frame</h2><h3 id="General-flow"><a href="#General-flow" class="headerlink" title="General flow"></a>General flow</h3><pre>
+handleMessageRefresh
+     |—> preComposition
+     |—> rebuildLayerStacks
+     |—> setUpHWComposer
+          |—> HWComposer::createWorkList <== hwc="" structures="" are="" allocated="" |—=""> Layer::setGeometry()
+          |—  set per frame data
+          |—  HWComposer::prepare
+               |—> hwc prepare
+     |—> doComposition
+          |---- skip composition on external display if condition meets
+          |—> doDisplayComposition
+          |    |—> doComposeSurfaces
+          |     |—> DisplayDevice::swapBuffers
+          |          |—> eglSwapBuffers
+          |          |—> FramebufferSurface::advanceFrame
+          |—> DisplayDevice::flip(…)     <== just="" update="" statistics="" count="" |--=""> Call DisplayDevice::compositionComplete(), notify each display
+               |--> DisplaySurface::compositionComplete()
+                    |--> FramebufferSurface::compositionComplete()
+                         |--> HWComposer::fbCompositionComplete()
+                              |--> NoOP if HWC >= 1.1
+                              |--> used only in framebuffer device case.
+          |—> postFrameBuffer
+               |—> HWComposer::commit
+                    |—> hwc set
+                    |—> update retireFenceFd of hwc_display_contents_1
+               |—> DisplayDevice::onSwapBuffersCompleted
+                    |—> FramebufferSurface::onFrameComitted
+               |—> Layer::onLayerDisplayed
+               |—   update some statistics
+     |—> postComposition 
+</==></==></pre>
+
+<h3 id="doComposeSurfaces"><a href="#doComposeSurfaces" class="headerlink" title="doComposeSurfaces"></a>doComposeSurfaces</h3><p>handleMessageRefresh -&gt; doComposition -&gt; doDisplayComposition -&gt; doComposeSurfaces</p>
+<ul>
+<li>Preparation work: <ul>
+<li>If GLES and hwc compositing, clear frame buffer target first </li>
+<li>If GLES only, drawWarmHole first</li>
+</ul>
+</li>
+<li>Render layers to framebuffer<ul>
+<li>For all layers if using hwc<ul>
+<li>do nothing if HWC_OVERLAY layer, display hardware will blend the layer</li>
+<li>render with opengl if HWC_FRAMEBUFFER layer, call layer-&gt;draw()</li>
+<li>set the layer’s acquireFence</li>
+</ul>
+</li>
+<li>For all layers if no hwc<ul>
+<li>just render with OpenGL, call layer-&gt;draw()</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Now all the GLES layers are drawn on frame buffer target, waiting to swapBuffers</li>
+</ul>
+<p>HWC related topic will be written in another article.</p>
+<h3 id="How-FrameBufferSurface-and-eglSwapBuffers-interact"><a href="#How-FrameBufferSurface-and-eglSwapBuffers-interact" class="headerlink" title="How FrameBufferSurface and eglSwapBuffers interact"></a>How FrameBufferSurface and eglSwapBuffers interact</h3><p>In SurfaceFlinger::init, the mDisplaySurface in DisplayDevice comes from the same BufferQueue as EGLSurface, look at the code </p>
+<pre><code>bq = new BufferQueue(new GraphicBufferAlloc());
+fbs = new FramebufferSurface(…, bq);
+hw = new DisplayDevice(…, fbs, bq, …);
+mDisplays.add(…,hw);
+</code></pre><p>So now EGL can swap to the FrameBufferSurface, because the EGLSurface is the provider end of the same BufferQueue which hosts FrameBufferSurface.<br>The layer represented by the frame buffer target is tracked by DisplayDevice::framebufferTarget, ANativeWindow and ANativeWindowBuffer is the interface used by EGL to access the buffer allocated in SurfaceFlinger. Basically flow is:</p>
+<p>swap to DisplayDevice::mSurface, DisplayDevice::mNativeWindow influenced too -&gt; BufferQueue::queueBuffer -&gt; FramebufferSurface::onFrameAvailable -&gt; HWComposer::fbPost -&gt; HWComposer::setFramebufferTarget -&gt; get framebuffer target fram handle parameter -&gt; disp.framebufferTarget.handle = disp.fbTargetHandle;</p>
+<pre><code>Stack trace: FramebufferSurface::onFrameAvailable (24 frames)
+...
+#02  pc 0002dffa  /system/lib/libgui.so (android::BufferQueue::ProxyConsumerListener::onFrameAvailable()+74)
+#03  pc 00030ca9  /system/lib/libgui.so (android::BufferQueue::queueBuffer(int, android::IGraphicBufferProducer::QueueBufferInput const&amp;, android::IGraphicBufferProducer::QueueBufferOutput*)+2425)
+#04  pc 000481cf  /system/lib/libgui.so (android::Surface::queueBuffer(ANativeWindowBuffer*, int)+559)
+#05  pc 000470c9  /system/lib/libgui.so (android::Surface::hook_queueBuffer(ANativeWindow*, ANativeWindowBuffer*, int)+41)
+...
+#17  pc 0001e895  /system/lib/libutils.so (android::Looper::pollOnce(int, int*, int*, void**)+53)
+#19  pc 00022a67  /system/lib/libsurfaceflinger.so (android::SurfaceFlinger::run()+39)
+...
+#22  pc 00000a02  /system/bin/surfaceflinger
+</code></pre><p>To get clear understanding of the process and the role, reference to this picture:</p>
+<p><img src="/images/post/surfaceflinger-as-consumer-and-producer.png" alt="surfaceflinger as consumer and producer"></p>
+<h2 id="Summary"><a href="#Summary" class="headerlink" title="Summary"></a>Summary</h2><ol>
+<li>Surface dequeueBuffer eventually works on BuffferQueue in SF, Surface is provider, SurfaceFlingerConsumer is consumer</li>
+<li>GraphicBuffer in allocated for Surface to draw.</li>
+<li>Surface queueBuffer eventually works on BufferQueue in SF, Layer::onFrameAvailable called.</li>
+<li>SurfaceFlingerConsumer::updateTexImage bind EGLImage as texture</li>
+<li>Layer::onDraw draws to the BufferQueue of FramebufferSurface, here egl is provider, FramebufferSurface is consumer</li>
+<li>FramebufferSurface::onFrameAvailable -&gt; HWComposer::fbPost -&gt; HWComposer::setFramebufferTarget</li>
+<li>All layers prepared, sent to HWC</li>
+</ol>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/android/" rel="tag"># android</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2014/05/17/eglimage-in-surfaceflinger/" rel="next" title="eglimage in surfaceflinger">
+                <i class="fa fa-chevron-left"></i> eglimage in surfaceflinger
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2014/07/10/surfaceflinger-and-hwcomposer/" rel="prev" title="surfaceflinger and hwcomposer">
+                surfaceflinger and hwcomposer <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.png"
+               alt="Wayne Wolf" />
+          <p class="site-author-name" itemprop="name">Wayne Wolf</p>
+           
+              <p class="site-description motion-element" itemprop="description"></p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">17</span>
+                <span class="site-state-item-name">posts</span>
+              </a>
+            </div>
+          
+
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">8</span>
+                <span class="site-state-item-name">tags</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/waynewolf" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                    
+                      GitHub
+                    
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://weibo.com/u/5658622153" target="_blank" title="Weibo">
+                  
+                    <i class="fa fa-fw fa-weibo"></i>
+                  
+                    
+                      Weibo
+                    
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+          <div class="links-of-blogroll motion-element links-of-blogroll-block">
+            <div class="links-of-blogroll-title">
+              <i class="fa  fa-fw fa-globe"></i>
+              Links
+            </div>
+            <ul class="links-of-blogroll-list">
+              
+                <li class="links-of-blogroll-item">
+                  <a href="http://hexo.io/" title="Hexo" target="_blank">Hexo</a>
+                </li>
+              
+                <li class="links-of-blogroll-item">
+                  <a href="http://www.sina.com.cn" title="Sina" target="_blank">Sina</a>
+                </li>
+              
+                <li class="links-of-blogroll-item">
+                  <a href="http://www.facebook.com" title="Facebook" target="_blank">Facebook</a>
+                </li>
+              
+            </ul>
+          </div>
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Introduction"><span class="nav-number">1.</span> <span class="nav-text">Introduction</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#How-client-draws-UI"><span class="nav-number">2.</span> <span class="nav-text">How client draws UI</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#BufferQueue-and-Consumer-Provider"><span class="nav-number">3.</span> <span class="nav-text">BufferQueue and Consumer/Provider</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Drawing-a-frame"><span class="nav-number">4.</span> <span class="nav-text">Drawing a frame</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#General-flow"><span class="nav-number">4.1.</span> <span class="nav-text">General flow</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#doComposeSurfaces"><span class="nav-number">4.2.</span> <span class="nav-text">doComposeSurfaces</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#How-FrameBufferSurface-and-eglSwapBuffers-interact"><span class="nav-number">4.3.</span> <span class="nav-text">How FrameBufferSurface and eglSwapBuffers interact</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Summary"><span class="nav-number">5.</span> <span class="nav-text">Summary</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2013 - 
+  <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Wayne Wolf</span>
+</div>
+
+
+<div class="powered-by">
+  Powered by <a class="theme-link" href="https://hexo.io">Hexo</a>
+</div>
+
+<div class="theme-info">
+  Theme -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Pisces
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.2"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
