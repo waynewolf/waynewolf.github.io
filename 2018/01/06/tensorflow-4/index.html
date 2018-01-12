@@ -94,17 +94,17 @@
 
 
 
-<meta name="description" content="finetune for object detectiontensorflow 仓库里有 object detection API，不过我并不打算用，在我看来，使用它会降低将来部署模型的灵活性，不如自己写。这里把过程记录下来。 下载预训练模型Mobilenet/SSD or ResNet101/SSD ? 准备数据层调整模型完善评估和训练代码开始训练测试代码">
+<meta name="description" content="TFRecordTFRecord在tensorflow中的作用类似于Caffe中的lmdb数据库，形不似而神似。TFRecord文件含有一个或多个Example(tf.train.Example proctol buffer)，可以和数据库的一行类比，而每个Example包含一个或多个Feature(tf.train.Feature)，相当与数据库的字段。 一般情况下，我们有以下几种方法装载数据：">
 <meta property="og:type" content="article">
 <meta property="og:title" content="tensorflow 4">
 <meta property="og:url" content="http://waynewolf.github.io/2018/01/06/tensorflow-4/index.html">
 <meta property="og:site_name" content="Wayne&#39;s Blog">
-<meta property="og:description" content="finetune for object detectiontensorflow 仓库里有 object detection API，不过我并不打算用，在我看来，使用它会降低将来部署模型的灵活性，不如自己写。这里把过程记录下来。 下载预训练模型Mobilenet/SSD or ResNet101/SSD ? 准备数据层调整模型完善评估和训练代码开始训练测试代码">
+<meta property="og:description" content="TFRecordTFRecord在tensorflow中的作用类似于Caffe中的lmdb数据库，形不似而神似。TFRecord文件含有一个或多个Example(tf.train.Example proctol buffer)，可以和数据库的一行类比，而每个Example包含一个或多个Feature(tf.train.Feature)，相当与数据库的字段。 一般情况下，我们有以下几种方法装载数据：">
 <meta property="og:locale" content="en">
-<meta property="og:updated_time" content="2018-01-06T14:02:32.643Z">
+<meta property="og:updated_time" content="2018-01-12T12:51:21.585Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="tensorflow 4">
-<meta name="twitter:description" content="finetune for object detectiontensorflow 仓库里有 object detection API，不过我并不打算用，在我看来，使用它会降低将来部署模型的灵活性，不如自己写。这里把过程记录下来。 下载预训练模型Mobilenet/SSD or ResNet101/SSD ? 准备数据层调整模型完善评估和训练代码开始训练测试代码">
+<meta name="twitter:description" content="TFRecordTFRecord在tensorflow中的作用类似于Caffe中的lmdb数据库，形不似而神似。TFRecord文件含有一个或多个Example(tf.train.Example proctol buffer)，可以和数据库的一行类比，而每个Example包含一个或多个Feature(tf.train.Feature)，相当与数据库的字段。 一般情况下，我们有以下几种方法装载数据：">
 
 
 
@@ -339,9 +339,31 @@
       
 
       
-        <h1 id="finetune-for-object-detection"><a href="#finetune-for-object-detection" class="headerlink" title="finetune for object detection"></a>finetune for object detection</h1><p>tensorflow 仓库里有 object detection API，不过我并不打算用，在我看来，使用它会降低将来部署模型的灵活性，不如自己写。这里把过程记录下来。</p>
-<h2 id="下载预训练模型"><a href="#下载预训练模型" class="headerlink" title="下载预训练模型"></a>下载预训练模型</h2><p>Mobilenet/SSD or ResNet101/SSD ?</p>
-<h2 id="准备数据层"><a href="#准备数据层" class="headerlink" title="准备数据层"></a>准备数据层</h2><h2 id="调整模型"><a href="#调整模型" class="headerlink" title="调整模型"></a>调整模型</h2><h2 id="完善评估和训练代码"><a href="#完善评估和训练代码" class="headerlink" title="完善评估和训练代码"></a>完善评估和训练代码</h2><h2 id="开始训练"><a href="#开始训练" class="headerlink" title="开始训练"></a>开始训练</h2><h2 id="测试代码"><a href="#测试代码" class="headerlink" title="测试代码"></a>测试代码</h2>
+        <h1 id="TFRecord"><a href="#TFRecord" class="headerlink" title="TFRecord"></a>TFRecord</h1><p>TFRecord在tensorflow中的作用类似于Caffe中的lmdb数据库，形不似而神似。TFRecord文件含有一个或多个Example(tf.train.Example proctol buffer)，可以和数据库的一行类比，而每个Example包含一个或多个Feature(tf.train.Feature)，相当与数据库的字段。</p>
+<p>一般情况下，我们有以下几种方法装载数据：</p>
+<ul>
+<li>硬盘。运行session的时候指定feed_dict，从磁盘装载。这种方法要把数据load到内存，不是和图像数据。</li>
+<li>CSV文件。不适合训练图像。</li>
+<li>TFRecord。反复读文件是开销很大的工作，因此这种方法事先把图像文件制作成专有的格式，避免训练时反复读文件，因此速度较快。</li>
+</ul>
+<p>除了速度较快，使用TFRecord，我们还可以动态shuffle，调整train/val/test数据集的比例，避免维护的麻烦。</p>
+<p>TFRecord文件包含一系列二进制字符串和crc校验吗，每个record的格式:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">uint64 length</span><br><span class="line">uint32 masked_crc32_of_length</span><br><span class="line">byte   data[length]</span><br><span class="line">uint32 masked_crc32_of_data</span><br></pre></td></tr></table></figure></p>
+<p>crc 计算方法:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">masked_crc = ((crc &gt;&gt; 15) | (crc &lt;&lt; 17)) + 0xa282ead8ul</span><br></pre></td></tr></table></figure></p>
+<h1 id="制作TFRecord文件"><a href="#制作TFRecord文件" class="headerlink" title="制作TFRecord文件"></a>制作TFRecord文件</h1><ul>
+<li>使用tf.python_io.TFRecordWriter，以写方式打开tfrecord文件。</li>
+<li>在写tfrecord文件之前，图像数据转成合适的类型(tf.train.Int64List, tf.train.BytesList 或 tf.train.FloatList<br>)。</li>
+<li>数据类型转化成 tf.train.Feature。</li>
+<li>使用tf.Example把feature转化成Example Protocol Buffer。</li>
+<li>使用tf.Example.SerializeToString()把Example串行化。</li>
+<li>把串行化后的Example写入tfrecord文件。</li>
+</ul>
+<p>一个例子：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line">import numpy as np</span><br><span class="line">import tensorflow as tf </span><br><span class="line">import glob</span><br><span class="line"></span><br><span class="line">from PIL import Image</span><br><span class="line"></span><br><span class="line"># 数值用int64</span><br><span class="line">def _int64_feature(value):</span><br><span class="line">  return tf.train.Feature(int64_list=tf.train.Int64List(value=[value]))</span><br><span class="line"></span><br><span class="line"># string和char用byte</span><br><span class="line">def _bytes_feature(value):</span><br><span class="line">  return tf.train.Feature(bytes_list=tf.train.BytesList(value=[value]))</span><br><span class="line"></span><br><span class="line">tfr_file = &quot;train.tfrecords&quot;</span><br><span class="line">tfr_writer = tf.python_io.TFRecordWriter(tfr_file)</span><br><span class="line"></span><br><span class="line">images = glob.glob(&apos;data/*.jpg&apos;)</span><br><span class="line">for image in images[:1]:</span><br><span class="line">  img = Image.open(image)</span><br><span class="line">  img = np.array(img.resize((32,32)))</span><br><span class="line">  label = ...</span><br><span class="line">  feature = &#123;</span><br><span class="line">    &apos;train/label&apos;: _int64_feature(label),</span><br><span class="line">    &apos;train/image&apos;: _bytes_feature(img.tostring())</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  # 创建Example protocol buffer</span><br><span class="line">  example = tf.train.Example(features=tf.train.Features(feature=feature))</span><br><span class="line"></span><br><span class="line">  # 把一个Example写入tfrecord文件</span><br><span class="line">  tfr_writer.write(example.SerializeToString())</span><br><span class="line"></span><br><span class="line">tfr_writer.close()</span><br></pre></td></tr></table></figure></p>
+<p>上例中数据转换的流程很清晰：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">原始图像和label -&gt; FeatureSet -&gt; Example -&gt; TFRecord</span><br></pre></td></tr></table></figure></p>
+<h2 id="读取TFrecord文件"><a href="#读取TFrecord文件" class="headerlink" title="读取TFrecord文件"></a>读取TFrecord文件</h2><p>读取的过程是写入过程的逆过程，数据转换流程是：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">TFRecord -&gt; Example -&gt; FeatureSet -&gt; 原始图像和label</span><br></pre></td></tr></table></figure></p>
+<p>读取TFrecord文件的例子：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line">import numpy as np</span><br><span class="line">import tensorflow as tf</span><br><span class="line">import matplotlib.pyplot as plt</span><br><span class="line">data_path = &apos;train.tfrecords&apos;</span><br><span class="line">with tf.Session() as sess:</span><br><span class="line">  feature = &#123;</span><br><span class="line">    &apos;train/image&apos;: tf.FixedLenFeature([], tf.string),</span><br><span class="line">    &apos;train/label&apos;: tf.FixedLenFeature([], tf.int64)</span><br><span class="line">  &#125;</span><br><span class="line">  # Create a list of filenames and pass it to a queue</span><br><span class="line">  filename_queue = tf.train.string_input_producer([data_path], num_epochs=1)</span><br><span class="line">  # Define a reader and read the next record</span><br><span class="line">  reader = tf.TFRecordReader()</span><br><span class="line">  _, serialized_example = reader.read(filename_queue)</span><br><span class="line">  # Decode the record read by the reader</span><br><span class="line">  features = tf.parse_single_example(serialized_example, features=feature)</span><br><span class="line">  # Convert the image data from string back to the numbers</span><br><span class="line">  image = tf.decode_raw(features[&apos;train/image&apos;], tf.float32)</span><br><span class="line">  </span><br><span class="line">  # Cast label data into int32</span><br><span class="line">  label = tf.cast(features[&apos;train/label&apos;], tf.int32)</span><br><span class="line">  # Reshape image data into the original shape</span><br><span class="line">  image = tf.reshape(image, [224, 224, 3])</span><br><span class="line">  </span><br><span class="line">  # Any preprocessing here ...</span><br><span class="line">  </span><br><span class="line">  # Creates batches by randomly shuffling tensors</span><br><span class="line">  images, labels = tf.train.shuffle_batch([image, label], batch_size=10, capacity=30, num_threads=1, min_after_dequeue=10)</span><br></pre></td></tr></table></figure></p>
+<p>TFRecord支持任意类型的byte，所以可以存入任意格式的图片，为了避免TFRecord文件膨胀，注意不要存入解压后的bitmap。</p>
+<h1 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h1><p>本文过了一下TFRecord相关类及用法，下一篇blog进入实战，在android上跑一个ssd检测模型。</p>
+
       
     </div>
     
@@ -374,6 +396,10 @@
           <span class="post-nav-divider"></span>
 
           <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/01/07/tensorflow-5/" rel="prev" title="tensorflow 5">
+                tensorflow 5 <i class="fa fa-chevron-right"></i>
+              </a>
             
           </div>
         </div>
@@ -450,7 +476,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">17</span>
+                <span class="site-state-item-count">18</span>
                 <span class="site-state-item-name">posts</span>
               </a>
             </div>
@@ -544,7 +570,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#finetune-for-object-detection"><span class="nav-number">1.</span> <span class="nav-text">finetune for object detection</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#下载预训练模型"><span class="nav-number">1.1.</span> <span class="nav-text">下载预训练模型</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#准备数据层"><span class="nav-number">1.2.</span> <span class="nav-text">准备数据层</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#调整模型"><span class="nav-number">1.3.</span> <span class="nav-text">调整模型</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#完善评估和训练代码"><span class="nav-number">1.4.</span> <span class="nav-text">完善评估和训练代码</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#开始训练"><span class="nav-number">1.5.</span> <span class="nav-text">开始训练</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#测试代码"><span class="nav-number">1.6.</span> <span class="nav-text">测试代码</span></a></li></ol></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#TFRecord"><span class="nav-number">1.</span> <span class="nav-text">TFRecord</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#制作TFRecord文件"><span class="nav-number">2.</span> <span class="nav-text">制作TFRecord文件</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#读取TFrecord文件"><span class="nav-number">2.1.</span> <span class="nav-text">读取TFrecord文件</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#小结"><span class="nav-number">3.</span> <span class="nav-text">小结</span></a></li></ol></div>
             
 
           </div>
