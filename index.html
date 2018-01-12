@@ -340,17 +340,15 @@
 
       
         
-          
-            <h1 id="Detection-Mobile-App"><a href="#Detection-Mobile-App" class="headerlink" title="Detection Mobile App"></a>Detection Mobile App</h1><h2 id="下载预训练模型"><a href="#下载预训练模型" class="headerlink" title="下载预训练模型"></a>下载预训练模型</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ wget http://download.tensorflow.org/models/object_detection/ssd_mobilenet_v1_coco_2017_11_17.tar.gz</span><br></pre></td></tr></table></figure>
+          <h1 id="Detection-Mobile-App"><a href="#Detection-Mobile-App" class="headerlink" title="Detection Mobile App"></a>Detection Mobile App</h1><h2 id="下载预训练模型"><a href="#下载预训练模型" class="headerlink" title="下载预训练模型"></a>下载预训练模型</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ wget http://download.tensorflow.org/models/object_detection/ssd_mobilenet_v1_coco_2017_11_17.tar.gz</span><br></pre></td></tr></table></figure>
 <p>unzip and copy frozen_inference_graph.pb to android app assets folder, rename to ssd_mobilenet_v1_coco_2017_11_17.pb</p>
-<h2 id="网络运行过程"><a href="#网络运行过程" class="headerlink" title="网络运行过程"></a>网络运行过程</h2><p>使用 TF Mobile API，生成TensorFlowInferenceInterface类，为了访问assets中的model，需要给这个类传递AssetManager的实例。有了 TensorFlowInferenceInterface实例后，获得graph<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">TensorFlowInferenceInterface inferenceInterface = new TensorFlowInferenceInterface(assetManager, modelFile);</span><br><span class="line">Graph g = inferenceInterface.graph();</span><br></pre></td></tr></table></figure></p>
-<p>接下来，通过Graph.operation(“tensorName”)获取网络中的tensor，这个函数需要tensor的名字，而这个名字需要查看模型。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Operation inputOp = g.operation(&quot;inputName&quot;);</span><br><span class="line">Operation output0Op = g.operation(&quot;outputName0&quot;);</span><br><span class="line">Operation output1Op = g.operation(&quot;outputName1&quot;);</span><br></pre></td></tr></table></figure></p>
-<p>在运行模型之前，给输入tensor喂数据<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">inferenceInterface.feed(inputName, byteValues, 1, modelInputWidth, modelInputHeight, 3);</span><br></pre></td></tr></table></figure></p>
-<p>所有的输入和输出tensor均已准备好，现在可以运行模型了。使用run函数，接受两个参数，一个代表所有输出tensor名字的字符串数组，另一个代表是否log状态。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">String[] outputNames = new String[] &#123;&quot;outputName0&quot;, &quot;outputName1&quot;&#125;;</span><br><span class="line">inferenceInterface.run(outputNames, logStats);</span><br></pre></td></tr></table></figure></p>
-<p>运行玩之后，结果已经出来了，通过fetch去取输出tensor中的值。fetch的地一个参数是输出tensor的名字，第二个参数是要存放的结果，内存要提前分配好。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">inferenceInterface.fetch(outputNames[0], outputValues);</span><br></pre></td></tr></table></figure></p>
-<h1 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h1><p>这个学习tensorflow的系列基本完结，在此基础上实现了一个app，可以作为调用模型的基础框架，代码可查看<a href="https://github.com/waynewolf/odembed.git" target="_blank" rel="noopener">odembed</a>。接下来会训练一些模型，在这个app上检测效果。</p>
-
-          
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2018/01/07/learn-tensorflow-5/#more" rel="contents">
+              Read more &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
         
       
     </div>
@@ -467,33 +465,14 @@
 
       
         
-          
-            <h1 id="TFRecord"><a href="#TFRecord" class="headerlink" title="TFRecord"></a>TFRecord</h1><p>TFRecord在tensorflow中的作用类似于Caffe中的lmdb数据库，形不似而神似。TFRecord文件含有一个或多个Example(tf.train.Example proctol buffer)，可以和数据库的一行类比，而每个Example包含一个或多个Feature(tf.train.Feature)，相当与数据库的字段。</p>
-<p>一般情况下，我们有以下几种方法装载数据：</p>
-<ul>
-<li>硬盘。运行session的时候指定feed_dict，从磁盘装载。这种方法要把数据load到内存，不是和图像数据。</li>
-<li>CSV文件。不适合训练图像。</li>
-<li>TFRecord。反复读文件是开销很大的工作，因此这种方法事先把图像文件制作成专有的格式，避免训练时反复读文件，因此速度较快。</li>
-</ul>
-<p>除了速度较快，使用TFRecord，我们还可以动态shuffle，调整train/val/test数据集的比例，避免维护的麻烦。</p>
-<p>TFRecord文件包含一系列二进制字符串和crc校验吗，每个record的格式:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">uint64 length</span><br><span class="line">uint32 masked_crc32_of_length</span><br><span class="line">byte   data[length]</span><br><span class="line">uint32 masked_crc32_of_data</span><br></pre></td></tr></table></figure></p>
-<p>crc 计算方法:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">masked_crc = ((crc &gt;&gt; 15) | (crc &lt;&lt; 17)) + 0xa282ead8ul</span><br></pre></td></tr></table></figure></p>
-<h1 id="制作TFRecord文件"><a href="#制作TFRecord文件" class="headerlink" title="制作TFRecord文件"></a>制作TFRecord文件</h1><ul>
-<li>使用tf.python_io.TFRecordWriter，以写方式打开tfrecord文件。</li>
-<li>在写tfrecord文件之前，图像数据转成合适的类型(tf.train.Int64List, tf.train.BytesList 或 tf.train.FloatList<br>)。</li>
-<li>数据类型转化成 tf.train.Feature。</li>
-<li>使用tf.Example把feature转化成Example Protocol Buffer。</li>
-<li>使用tf.Example.SerializeToString()把Example串行化。</li>
-<li>把串行化后的Example写入tfrecord文件。</li>
-</ul>
-<p>一个例子：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line">import numpy as np</span><br><span class="line">import tensorflow as tf </span><br><span class="line">import glob</span><br><span class="line"></span><br><span class="line">from PIL import Image</span><br><span class="line"></span><br><span class="line"># 数值用int64</span><br><span class="line">def _int64_feature(value):</span><br><span class="line">  return tf.train.Feature(int64_list=tf.train.Int64List(value=[value]))</span><br><span class="line"></span><br><span class="line"># string和char用byte</span><br><span class="line">def _bytes_feature(value):</span><br><span class="line">  return tf.train.Feature(bytes_list=tf.train.BytesList(value=[value]))</span><br><span class="line"></span><br><span class="line">tfr_file = &quot;train.tfrecords&quot;</span><br><span class="line">tfr_writer = tf.python_io.TFRecordWriter(tfr_file)</span><br><span class="line"></span><br><span class="line">images = glob.glob(&apos;data/*.jpg&apos;)</span><br><span class="line">for image in images[:1]:</span><br><span class="line">  img = Image.open(image)</span><br><span class="line">  img = np.array(img.resize((32,32)))</span><br><span class="line">  label = ...</span><br><span class="line">  feature = &#123;</span><br><span class="line">    &apos;train/label&apos;: _int64_feature(label),</span><br><span class="line">    &apos;train/image&apos;: _bytes_feature(img.tostring())</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  # 创建Example protocol buffer</span><br><span class="line">  example = tf.train.Example(features=tf.train.Features(feature=feature))</span><br><span class="line"></span><br><span class="line">  # 把一个Example写入tfrecord文件</span><br><span class="line">  tfr_writer.write(example.SerializeToString())</span><br><span class="line"></span><br><span class="line">tfr_writer.close()</span><br></pre></td></tr></table></figure></p>
-<p>上例中数据转换的流程很清晰：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">原始图像和label -&gt; FeatureSet -&gt; Example -&gt; TFRecord</span><br></pre></td></tr></table></figure></p>
-<h2 id="读取TFrecord文件"><a href="#读取TFrecord文件" class="headerlink" title="读取TFrecord文件"></a>读取TFrecord文件</h2><p>读取的过程是写入过程的逆过程，数据转换流程是：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">TFRecord -&gt; Example -&gt; FeatureSet -&gt; 原始图像和label</span><br></pre></td></tr></table></figure></p>
-<p>读取TFrecord文件的例子：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line">import numpy as np</span><br><span class="line">import tensorflow as tf</span><br><span class="line">import matplotlib.pyplot as plt</span><br><span class="line">data_path = &apos;train.tfrecords&apos;</span><br><span class="line">with tf.Session() as sess:</span><br><span class="line">  feature = &#123;</span><br><span class="line">    &apos;train/image&apos;: tf.FixedLenFeature([], tf.string),</span><br><span class="line">    &apos;train/label&apos;: tf.FixedLenFeature([], tf.int64)</span><br><span class="line">  &#125;</span><br><span class="line">  # Create a list of filenames and pass it to a queue</span><br><span class="line">  filename_queue = tf.train.string_input_producer([data_path], num_epochs=1)</span><br><span class="line">  # Define a reader and read the next record</span><br><span class="line">  reader = tf.TFRecordReader()</span><br><span class="line">  _, serialized_example = reader.read(filename_queue)</span><br><span class="line">  # Decode the record read by the reader</span><br><span class="line">  features = tf.parse_single_example(serialized_example, features=feature)</span><br><span class="line">  # Convert the image data from string back to the numbers</span><br><span class="line">  image = tf.decode_raw(features[&apos;train/image&apos;], tf.float32)</span><br><span class="line">  </span><br><span class="line">  # Cast label data into int32</span><br><span class="line">  label = tf.cast(features[&apos;train/label&apos;], tf.int32)</span><br><span class="line">  # Reshape image data into the original shape</span><br><span class="line">  image = tf.reshape(image, [224, 224, 3])</span><br><span class="line">  </span><br><span class="line">  # Any preprocessing here ...</span><br><span class="line">  </span><br><span class="line">  # Creates batches by randomly shuffling tensors</span><br><span class="line">  images, labels = tf.train.shuffle_batch([image, label], batch_size=10, capacity=30, num_threads=1, min_after_dequeue=10)</span><br></pre></td></tr></table></figure></p>
-<p>TFRecord支持任意类型的byte，所以可以存入任意格式的图片，为了避免TFRecord文件膨胀，注意不要存入解压后的bitmap。</p>
-<h1 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h1><p>本文过了一下TFRecord相关类及用法，下一篇blog进入实战，在android上跑一个ssd检测模型。</p>
-
-          
+          <h1 id="TFRecord"><a href="#TFRecord" class="headerlink" title="TFRecord"></a>TFRecord</h1><p>TFRecord在tensorflow中的作用类似于Caffe中的lmdb数据库，形不似而神似。TFRecord文件含有一个或多个Example(tf.train.Example proctol buffer)，可以和数据库的一行类比，而每个Example包含一个或多个Feature(tf.train.Feature)，相当与数据库的字段。</p>
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2018/01/06/learn-tensorflow-4/#more" rel="contents">
+              Read more &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
         
       
     </div>
@@ -610,47 +589,14 @@
 
       
         
-          
-            <h1 id="Dataset-API"><a href="#Dataset-API" class="headerlink" title="Dataset API"></a>Dataset API</h1><p>数据的重要性毋庸置疑，训练模型的时候很大一部分工作花在处理数据上，有必要专门看看一看数据处理类Dataset的用法。Dataset(tf.data.Dataset)表示一系列具有相同结构的元素，每个元素含一个或多个Tensor。</p>
-<h2 id="创建Dataset"><a href="#创建Dataset" class="headerlink" title="创建Dataset"></a>创建Dataset</h2><p>创建 Dataset 有两种方法:</p>
-<ul>
-<li>Dataset构造函数，传入 Source (Dataset.from_tensor_slices())，用多个Tensor对象构造</li>
-<li>数据来自TFRecord格式的文件，则用 tf.data.TFRecordDataset</li>
-<li>通过已有的Dataset对象，运用transformation构造(如 Dataset.batch())</li>
-</ul>
-<p>Dataset的结构是可以嵌套的，举几个例子：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">dataset1 = tf.data.Dataset.from_tensor_slices(tf.random_uniform([4, 10]))</span><br><span class="line">print(dataset1.output_types)  # ==&gt; &quot;tf.float32&quot;</span><br><span class="line">print(dataset1.output_shapes)  # ==&gt; &quot;(10,)&quot;</span><br><span class="line"></span><br><span class="line">dataset2 = tf.data.Dataset.from_tensor_slices(</span><br><span class="line">   (tf.random_uniform([4]),</span><br><span class="line">    tf.random_uniform([4, 100], maxval=100, dtype=tf.int32)))</span><br><span class="line">print(dataset2.output_types)  # ==&gt; &quot;(tf.float32, tf.int32)&quot;</span><br><span class="line">print(dataset2.output_shapes)  # ==&gt; &quot;((), (100,))&quot;</span><br><span class="line"></span><br><span class="line">dataset3 = tf.data.Dataset.zip((dataset1, dataset2))</span><br><span class="line">print(dataset3.output_types)  # ==&gt; (tf.float32, (tf.float32, tf.int32))</span><br><span class="line">print(dataset3.output_shapes)  # ==&gt; &quot;(10, ((), (100,)))&quot;</span><br></pre></td></tr></table></figure></p>
-<p>Dataset API支持map，filter等方法：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">dataset1 = dataset1.map(lambda x: ...)</span><br><span class="line">dataset2 = dataset2.flat_map(lambda x, y: ...)</span><br><span class="line"># Note: Argument destructuring is not available in Python 3.</span><br><span class="line">dataset3 = dataset3.filter(lambda x, (y, z): ...)</span><br></pre></td></tr></table></figure></p>
-<h2 id="访问Dataset中的元素"><a href="#访问Dataset中的元素" class="headerlink" title="访问Dataset中的元素"></a>访问Dataset中的元素</h2><p>用迭代器tf.data.Iterator访问Dataset中的元素，有如下几种迭代器：</p>
-<ul>
-<li>one-shot</li>
-<li>initializable</li>
-<li>reinitializable</li>
-<li>feedable</li>
-</ul>
-<p>one_shot迭代器简单易用，举个例子：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">dataset = tf.data.Dataset.range(100)</span><br><span class="line">iterator = dataset.make_one_shot_iterator()</span><br><span class="line">next_element = iterator.get_next()</span><br><span class="line"></span><br><span class="line">for i in range(100):</span><br><span class="line">  value = sess.run(next_element)</span><br><span class="line">  assert i == value</span><br></pre></td></tr></table></figure></p>
-<p>如果没有更多的数据，Iterator.get_next()会抛出tf.errors.OutOfRangeError异常，所以最好这么用：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">while True:</span><br><span class="line">  try:</span><br><span class="line">    sess.run(result)</span><br><span class="line">  except tf.errors.OutOfRangeError:</span><br><span class="line">    break</span><br></pre></td></tr></table></figure></p>
-<p>注意上文中嵌套的dataset，Iterator.get_next()返回的结构也是嵌套的：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">dataset1 = tf.data.Dataset.from_tensor_slices(tf.random_uniform([4, 10]))</span><br><span class="line">dataset2 = tf.data.Dataset.from_tensor_slices((tf.random_uniform([4]), tf.random_uniform([4, 100])))</span><br><span class="line">dataset3 = tf.data.Dataset.zip((dataset1, dataset2))</span><br><span class="line"></span><br><span class="line">iterator = dataset3.make_initializable_iterator()</span><br><span class="line"></span><br><span class="line">sess.run(iterator.initializer)</span><br><span class="line">next1, (next2, next3) = iterator.get_next()</span><br></pre></td></tr></table></figure></p>
-<p>注意对next1, next2, next3任何一个取值都会前进所有的迭代器！推荐的做法是在一个sess.run函数中包含所有的Tensor。</p>
-<h2 id="load-numpy数据"><a href="#load-numpy数据" class="headerlink" title="load numpy数据"></a>load numpy数据</h2><p>这是一个简单的例子，把numpy数组load到内存中：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">with np.load(&quot;/var/data/training_data.npy&quot;) as data:</span><br><span class="line">  features = data[&quot;features&quot;]</span><br><span class="line">  labels = data[&quot;labels&quot;]</span><br><span class="line"></span><br><span class="line"># shape[0]一般是feature的数目，应和labels数目匹配</span><br><span class="line">assert features.shape[0] == labels.shape[0]</span><br><span class="line"></span><br><span class="line"># naive</span><br><span class="line">dataset = tf.data.Dataset.from_tensor_slices((features, labels))</span><br></pre></td></tr></table></figure></p>
-<p>但是这样做features, labels数据都变成constant，很容易内存溢出，比较好的做法是使用placeholder:</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">with np.load(&quot;/var/data/training_data.npy&quot;) as data:</span><br><span class="line">  features = data[&quot;features&quot;]</span><br><span class="line">  labels = data[&quot;labels&quot;]</span><br><span class="line"></span><br><span class="line">assert features.shape[0] == labels.shape[0]</span><br><span class="line"></span><br><span class="line">features_placeholder = tf.placeholder(features.dtype, features.shape)</span><br><span class="line">labels_placeholder = tf.placeholder(labels.dtype, labels.shape)</span><br><span class="line"></span><br><span class="line">dataset = tf.data.Dataset.from_tensor_slices((features_placeholder, labels_placeholder))</span><br><span class="line"># [Other transformations on `dataset`...]</span><br><span class="line">dataset = ...</span><br><span class="line">iterator = dataset.make_initializable_iterator()</span><br><span class="line"></span><br><span class="line">sess.run(iterator.initializer, feed_dict=&#123;features_placeholder: features,</span><br><span class="line">                                          labels_placeholder: labels&#125;)</span><br></pre></td></tr></table></figure>
-<h2 id="load-TFRecord数据"><a href="#load-TFRecord数据" class="headerlink" title="load TFRecord数据"></a>load TFRecord数据</h2><p>通过一系列TFRecord文件创建Dataset:</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">filenames = [&quot;/var/data/file1.tfrecord&quot;, &quot;/var/data/file2.tfrecord&quot;]</span><br><span class="line">dataset = tf.data.TFRecordDataset(filenames)</span><br></pre></td></tr></table></figure>
-<p>这里，文件名可以是类型为string的Tensor，这样可以用placeholder切换训练集和测试集:</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">filenames = tf.placeholder(tf.string, shape=[None])</span><br><span class="line">dataset = tf.data.TFRecordDataset(filenames)</span><br><span class="line">dataset = dataset.map(...)  # Parse the record into tensors.</span><br><span class="line">dataset = dataset.repeat()  # Repeat the input indefinitely.</span><br><span class="line">dataset = dataset.batch(32)</span><br><span class="line">iterator = dataset.make_initializable_iterator()</span><br><span class="line"></span><br><span class="line"># You can feed the initializer with the appropriate filenames for the current</span><br><span class="line"># phase of execution, e.g. training vs. validation.</span><br><span class="line"></span><br><span class="line"># Initialize `iterator` with training data.</span><br><span class="line">training_filenames = [&quot;/var/data/file1.tfrecord&quot;, &quot;/var/data/file2.tfrecord&quot;]</span><br><span class="line">sess.run(iterator.initializer, feed_dict=&#123;filenames: training_filenames&#125;)</span><br><span class="line"></span><br><span class="line"># Initialize `iterator` with validation data.</span><br><span class="line">validation_filenames = [&quot;/var/data/validation1.tfrecord&quot;, ...]</span><br><span class="line">sess.run(iterator.initializer, feed_dict=&#123;filenames: validation_filenames&#125;)</span><br></pre></td></tr></table></figure>
-<h2 id="使用Dataset-map转换数据"><a href="#使用Dataset-map转换数据" class="headerlink" title="使用Dataset.map转换数据"></a>使用Dataset.map转换数据</h2><p>在训练图像数据时，进行预处理很常见，这是一个例子：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"># Reads an image from a file, decodes it into a dense tensor, and resizes it</span><br><span class="line"># to a fixed shape.</span><br><span class="line">def _parse_function(filename, label):</span><br><span class="line">  image_string = tf.read_file(filename)</span><br><span class="line">  image_decoded = tf.image.decode_image(image_string)</span><br><span class="line">  image_resized = tf.image.resize_images(image_decoded, [28, 28])</span><br><span class="line">  return image_resized, label</span><br><span class="line"></span><br><span class="line"># A vector of filenames.</span><br><span class="line">filenames = tf.constant([&quot;/var/data/image1.jpg&quot;, &quot;/var/data/image2.jpg&quot;, ...])</span><br><span class="line"></span><br><span class="line"># `labels[i]` is the label for the image in `filenames[i].</span><br><span class="line">labels = tf.constant([0, 37, ...])</span><br><span class="line"></span><br><span class="line">dataset = tf.data.Dataset.from_tensor_slices((filenames, labels))</span><br><span class="line">dataset = dataset.map(_parse_function)</span><br></pre></td></tr></table></figure></p>
-<p>按照文档的说法，使用Tensorflow Op预处理数据性能会好一些，但毕竟有时候你可能会用类似OpenCV的函数去处理数据，可以用tf.py_func方法：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">import cv2</span><br><span class="line"></span><br><span class="line"># Use a custom OpenCV function to read the image, instead of the standard</span><br><span class="line"># TensorFlow `tf.read_file()` operation.</span><br><span class="line">def _read_py_function(filename, label):</span><br><span class="line">  image_decoded = cv2.imread(image_string, cv2.IMREAD_GRAYSCALE)</span><br><span class="line">  return image_decoded, label</span><br><span class="line"></span><br><span class="line"># Use standard TensorFlow operations to resize the image to a fixed shape.</span><br><span class="line">def _resize_function(image_decoded, label):</span><br><span class="line">  image_decoded.set_shape([None, None, None])</span><br><span class="line">  image_resized = tf.image.resize_images(image_decoded, [28, 28])</span><br><span class="line">  return image_resized, label</span><br><span class="line"></span><br><span class="line">filenames = [&quot;/var/data/image1.jpg&quot;, &quot;/var/data/image2.jpg&quot;, ...]</span><br><span class="line">labels = [0, 37, 29, 1, ...]</span><br><span class="line"></span><br><span class="line">dataset = tf.data.Dataset.from_tensor_slices((filenames, labels))</span><br><span class="line">dataset = dataset.map(</span><br><span class="line">    lambda filename, label: tuple(tf.py_func(</span><br><span class="line">        _read_py_function, [filename, label], [tf.uint8, label.dtype])))</span><br><span class="line">dataset = dataset.map(_resize_function)</span><br></pre></td></tr></table></figure>
-<h2 id="Batch"><a href="#Batch" class="headerlink" title="Batch"></a>Batch</h2><p>训练的时候我们需要的是一个batch数据，而非单个，可以调用Dataset.batch(num_batches)，让Iterator.get_next()返回一个batch的数据。一个简单的例子：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">inc_dataset = tf.data.Dataset.range(100)</span><br><span class="line">dec_dataset = tf.data.Dataset.range(0, -100, -1)</span><br><span class="line">dataset = tf.data.Dataset.zip((inc_dataset, dec_dataset))</span><br><span class="line">batched_dataset = dataset.batch(4)</span><br><span class="line"></span><br><span class="line">iterator = batched_dataset.make_one_shot_iterator()</span><br><span class="line">next_element = iterator.get_next()</span><br><span class="line"></span><br><span class="line">print(sess.run(next_element))  # ==&gt; ([0, 1, 2,   3],   [ 0, -1,  -2,  -3])</span><br><span class="line">print(sess.run(next_element))  # ==&gt; ([4, 5, 6,   7],   [-4, -5,  -6,  -7])</span><br><span class="line">print(sess.run(next_element))  # ==&gt; ([8, 9, 10, 11],   [-8, -9, -10, -11])</span><br></pre></td></tr></table></figure>
-<p>Dataset.batch(4)设置batch size为4, Iterator.get_next()一次拿出4个数据。</p>
-<h2 id="epoch"><a href="#epoch" class="headerlink" title="epoch"></a>epoch</h2><p>训练的时候要遍历完整的训练集很多次，通过Dataset.repeat(num_epochs)设置epoch的数目。Dataset.repeat()不带参数表明要无限次输入。如果要得到一个epoch完成的信息，可以捕获tf.errors.OutOfRangeError：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">filenames = [&quot;/var/data/file1.tfrecord&quot;, &quot;/var/data/file2.tfrecord&quot;]</span><br><span class="line">dataset = tf.data.TFRecordDataset(filenames)</span><br><span class="line">dataset = dataset.map(...)</span><br><span class="line">dataset = dataset.batch(32)</span><br><span class="line">iterator = dataset.make_initializable_iterator()</span><br><span class="line">next_element = iterator.get_next()</span><br><span class="line"></span><br><span class="line"># Compute for 100 epochs.</span><br><span class="line">for _ in range(100):</span><br><span class="line">  sess.run(iterator.initializer)</span><br><span class="line">  while True:</span><br><span class="line">    try:</span><br><span class="line">      sess.run(next_element)</span><br><span class="line">    except tf.errors.OutOfRangeError:</span><br><span class="line">      break</span><br><span class="line"></span><br><span class="line">  # [Perform end-of-epoch calculations here.]</span><br></pre></td></tr></table></figure>
-<h2 id="随机shuffle数据"><a href="#随机shuffle数据" class="headerlink" title="随机shuffle数据"></a>随机shuffle数据</h2><p>使用 Dataset.shuffle()方法。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">filenames = [&quot;/var/data/file1.tfrecord&quot;, &quot;/var/data/file2.tfrecord&quot;]</span><br><span class="line">dataset = tf.data.TFRecordDataset(filenames)</span><br><span class="line">dataset = dataset.map(...)</span><br><span class="line">dataset = dataset.shuffle(buffer_size=10000)</span><br><span class="line">dataset = dataset.batch(32)</span><br><span class="line">dataset = dataset.repeat()</span><br></pre></td></tr></table></figure></p>
-<h2 id="一个简单的训练框架"><a href="#一个简单的训练框架" class="headerlink" title="一个简单的训练框架"></a>一个简单的训练框架</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">filenames = [&quot;/var/data/file1.tfrecord&quot;, &quot;/var/data/file2.tfrecord&quot;]</span><br><span class="line">dataset = tf.data.TFRecordDataset(filenames)</span><br><span class="line">dataset = dataset.map(...)</span><br><span class="line">dataset = dataset.shuffle(buffer_size=10000)</span><br><span class="line">dataset = dataset.batch(32)</span><br><span class="line">dataset = dataset.repeat(num_epochs)</span><br><span class="line">iterator = dataset.make_one_shot_iterator()</span><br><span class="line"></span><br><span class="line">next_example, next_label = iterator.get_next()</span><br><span class="line">loss = model_function(next_example, next_label)</span><br><span class="line"></span><br><span class="line">training_op = tf.train.AdagradOptimizer(...).minimize(loss)</span><br><span class="line"></span><br><span class="line">with tf.train.MonitoredTrainingSession(...) as sess:</span><br><span class="line">  while not sess.should_stop():</span><br><span class="line">    sess.run(training_op)</span><br></pre></td></tr></table></figure>
-<h1 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h1><p>本文走马观花过了一遍Dataset API，下文将了解如何制作TFRecord。</p>
-
-          
+          <h1 id="Dataset-API"><a href="#Dataset-API" class="headerlink" title="Dataset API"></a>Dataset API</h1><p>数据的重要性毋庸置疑，训练模型的时候很大一部分工作花在处理数据上，有必要专门看看一看数据处理类Dataset的用法。Dataset(tf.data.Dataset)表示一系列具有相同结构的元素，每个元素含一个或多个Tensor。</p>
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2018/01/06/learn-tensorflow-3/#more" rel="contents">
+              Read more &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
         
       
     </div>
@@ -767,78 +713,259 @@
 
       
         
+          <h1 id="TF-Mobile-和-TF-Lite"><a href="#TF-Mobile-和-TF-Lite" class="headerlink" title="TF Mobile 和 TF Lite"></a>TF Mobile 和 TF Lite</h1><p>目前 TF Lite 还没有成熟，代码中散落各类实现和例子，有必要先了解一下两个相近的框架 TF Mobile 和 TF Lite。TF Mobile 早于 TF Lite，是Tensorflow最初在移动设备上的移植，它没有硬件加速，没有量化等优化，因此可以认为它是一个过度框架。而 TF Lite 实现了比 protobuf 更轻量级的 flatbuffer，开销小，但目前不是所有的 op 都支持。总之，能用 TF Lite 的地方就尽量用，不能用再考虑 TF Mobile。</p>
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2018/01/06/learn-tensorflow-2/#more" rel="contents">
+              Read more &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://waynewolf.github.io/2018/01/03/learn-tensorflow-1/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Wayne Wolf">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Wayne's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/01/03/learn-tensorflow-1/" itemprop="url">learn tensorflow 1</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-01-03T21:48:53+08:00">
+                2018-01-03
+              </time>
+            
+
+            
+
+            
+          </span>
+
           
-            <h1 id="TF-Mobile-和-TF-Lite"><a href="#TF-Mobile-和-TF-Lite" class="headerlink" title="TF Mobile 和 TF Lite"></a>TF Mobile 和 TF Lite</h1><p>目前 TF Lite 还没有成熟，代码中散落各类实现和例子，有必要先了解一下两个相近的框架 TF Mobile 和 TF Lite。TF Mobile 早于 TF Lite，是Tensorflow最初在移动设备上的移植，它没有硬件加速，没有量化等优化，因此可以认为它是一个过度框架。而 TF Lite 实现了比 protobuf 更轻量级的 flatbuffer，开销小，但目前不是所有的 op 都支持。总之，能用 TF Lite 的地方就尽量用，不能用再考虑 TF Mobile。</p>
-<h2 id="TF-Mobile-demo-analysis"><a href="#TF-Mobile-demo-analysis" class="headerlink" title="TF Mobile demo analysis"></a>TF Mobile demo analysis</h2><p>TF Mobile Camera 例子涵盖最基础的四个应用场景，classification, detection, stylize 和 sppech。<br>org.tensorflow.demo java库，主要API：</p>
-<ul>
-<li>TensorFlowInferenceInterface</li>
-</ul>
-<p>如何使用这个类可以参考<a href="https://github.com/tensorflow/tensorflow/blob/master/tensorflow/examples/android/src/org/tensorflow/demo/TensorFlowImageClassifier.java" target="_blank" rel="noopener">TensorFlowImageClassifier.java</a></p>
-<p>java 程序如果想用 tensorflow，可以使用 jcenter 仓库中的版本，在 build.gradle 加上如下几行即可：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">allprojects &#123;</span><br><span class="line">    repositories &#123;</span><br><span class="line">        jcenter()</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">dependencies &#123;</span><br><span class="line">    compile &apos;org.tensorflow:tensorflow-android:+&apos;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>java apk依赖两个c++ 库：</p>
-<ul>
-<li>libtensorflow_demo.so</li>
-<li>libtensorflow_inference.so</li>
-</ul>
-<p>其中 libtensorflow_demo.so 做 RGB-&gt;YUV转换，并不重要。而 libtensorflow_inference.so 是 tensorflow C++库，<br>有必要搞明白它怎么来的，便于以后自己编译。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$ cd $TF_REPO_ROOT</span><br><span class="line">$ bazel build -c opt //tensorflow/contrib/android:libtensorflow_inference.so \</span><br><span class="line">     --crosstool_top=//external:android/crosstool \</span><br><span class="line">     --host_crosstool_top=@bazel_tools//tools/cpp:toolchain \</span><br><span class="line">     --cpu=armeabi-v7a</span><br></pre></td></tr></table></figure>
-<p>把cpu替换成自己需要的架构。更详细信息参考<a href="https://github.com/tensorflow/tensorflow/tree/master/tensorflow/contrib/android" target="_blank" rel="noopener">这里</a></p>
-<p>要看demo效果，可以直接使用 nightly build 的demo，也可以用 android studio 打开 tensorflow/examples/android 目录进行编译。参考<a href="https://github.com/tensorflow/tensorflow/tree/master/tensorflow/examples/android" target="_blank" rel="noopener">这里</a></p>
-<h2 id="TF-Lite-demo"><a href="#TF-Lite-demo" class="headerlink" title="TF Lite demo"></a>TF Lite demo</h2><p>TF lite的例子中依然用到 tensorflow.aar 包，包含 libtensorflow_inference.so, libtensorflow_demo.so，它们是怎么来的，什么作用？</p>
-<p>代码目录</p>
-<ul>
-<li>tensorflow/contrib/lite/java/demo</li>
-</ul>
-<p>java包:</p>
-<ul>
-<li>org.tensorflow.lite.Interpreter</li>
-</ul>
-<p>使用 jcenter 中的 tensorflow.aar 报，包含：</p>
-<ul>
-<li>libtensorflowlite_jni.so (实现: tensorflow/contrib/lite/java/src/main/native)</li>
-<li>libtensorflow_inference.so (实现：tensorflow/contrib/android)</li>
-</ul>
-<h2 id="tensorflow-lite-c-库"><a href="#tensorflow-lite-c-库" class="headerlink" title="tensorflow-lite c++ 库"></a>tensorflow-lite c++ 库</h2><p>google 非常贴心地在 tensorflow 代码库中加入了 tensorlow-lite android apk, 运行起来豪不费劲，不过我更关心 tensorflow-lite 在嵌入式设备上的推断运行，以及在新场景下的finetune模型。</p>
-<p>自带的 tensorflow camera 例子，调用路径是 java -&gt; libtensorflow_jni.so，而我需要的是把 tensorflowlite 的cpp库，所以需要从头开始编译。</p>
-<p>用如下方式编译：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ cd $TF_ROOT</span><br><span class="line"># bazel build -c opt //tensorflow/contrib/lite:*</span><br></pre></td></tr></table></figure>
-<p>产生如下几个库，静态和动态都有：</p>
-<ul>
-<li>libcontext.{a,so}</li>
-<li>libframework.{a,so}</li>
-<li>libstring_util.{a,so}</li>
-</ul>
-<p>其实 tensorflow camera demo 的java代码使用的 libtensorflowlite_jni.so，就是把这几个静态库打包起来。</p>
-<p>接下来就可以使用tensorflow-lite c++接口了，接口文档在<a href="https://github.com/tensorflow/tensorflow/blob/master/tensorflow/contrib/lite/g3doc/apis.md" target="_blank" rel="noopener">这里</a></p>
-<h2 id="Go-through-TF-Lite-finetune-process"><a href="#Go-through-TF-Lite-finetune-process" class="headerlink" title="Go through TF Lite finetune process"></a>Go through TF Lite finetune process</h2><p><strong>Download pretrained TF Slim model</strong></p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ export MODEL_DIR=/path/to/your/model/dir</span><br><span class="line">$ wget -P $MODEL_DIR http://download.tensorflow.org/models/mobilenet_v1_1.0_224_2017_06_14.tar.gz</span><br><span class="line">$ tar zxvf $MODEL_DIR/mobilenet_v1_1.0_224_2017_06_14.tar.gz -C $MODEL_DIR</span><br></pre></td></tr></table></figure>
-<p>解压后的文件列表：</p>
-<ul>
-<li>mobilenet_v1_1.0_224.ckpt.data-00000-of-00001</li>
-<li>mobilenet_v1_1.0_224.ckpt.index</li>
-<li>mobilenet_v1_1.0_224.ckpt.meta</li>
-</ul>
-<p><strong>Export model</strong></p>
-<p>如果使用 TF Slim 生成的模型，必须把模型导出成GraphDef文件，输出文件后缀是.pb</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">$ cd $TF_MODELS_REPO_ROOT</span><br><span class="line">$ python3 export_inference_graph.py \</span><br><span class="line">    --alsologtostderr \</span><br><span class="line">    --model_name=mobilenet_v1 \</span><br><span class="line">    --image_size=224 \</span><br><span class="line">    --output_file=$MODEL_DIR/mobilenet_v1_224.pb</span><br></pre></td></tr></table></figure>
-<p>这里，export_inference_graph.py 读取 mobilenet_v1 的模型代码，把它存成GraphDev文件：mobilenet_v1_224.pb</p>
-<p><strong>Retrieve output node names</strong></p>
-<p>我们需要使用 summarize_graph 工具获取 pb 文件的output_node.</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ cd $TENSORFLOW_REPO_ROOT</span><br><span class="line">$ bazel build tensorflow/tools/graph_transforms:summarize_graph</span><br><span class="line">$ bazel-bin/tensorflow/tools/graph_transforms/summarize_graph \</span><br><span class="line">  --in_graph=$MODEL_DIR/mobilenet_v1_224.pb</span><br></pre></td></tr></table></figure>
-<p>输出的结果最后一行如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">--output_layer=MobilenetV1/Predictions/Reshape_1</span><br></pre></td></tr></table></figure></p>
-<p><strong>Freeze graph</strong></p>
-<p>在模型能使用前，需要freeze graph，把 variable 转化成 constant。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">$ bazel build tensorflow/python/tools:freeze_graph</span><br><span class="line">$ bazel-bin/tensorflow/python/tools/freeze_graph \</span><br><span class="line">      --input_graph=$MODEL_DIR/mobilenet_v1_224.pb \</span><br><span class="line">      --input_checkpoint=$MODEL_DIR/mobilenet_v1_1.0_224.ckpt \</span><br><span class="line">      --input_binary=true --output_graph=$MODEL_DIR/frozen_mobilenet_v1_1.0_224.pb \</span><br><span class="line">      --output_node_names=MobilenetV1/Predictions/Reshape_1</span><br></pre></td></tr></table></figure>
-<p>这里的 input_checkpoint 不是一个 ckpt 文件名，而是一系列 ckpt 文件的公共前缀，这里是: mobilenet_v1_1.0_224.ckpt.<br>output_node_names 来自上一步的输出。</p>
-<p><strong>convert format to tflite</strong></p>
-<p>上一步生成的 frozen_mobilenet_v1_1.0_224.pb 并不是 tensorflow lite 格式，需要进一步转化，用到工具 toto.</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">$ bazel build tensorflow/contrib/lite/toco:toco</span><br><span class="line">$ bazel-bin/tensorflow/contrib/lite/toco/toco \</span><br><span class="line">  --input_file=$MODEL_DIR/frozen_mobilenet_v1_1.0_224.pb \</span><br><span class="line">  --input_format=TENSORFLOW_GRAPHDEF  --output_format=TFLITE \</span><br><span class="line">  --output_file=$MODEL_DIR/mobilenet_v1_1.0_224.tflite --inference_type=FLOAT \</span><br><span class="line">  --input_type=FLOAT --input_arrays=input \</span><br><span class="line">  --output_arrays=MobilenetV1/Predictions/Reshape_1 --input_shapes=1,224,224,3</span><br></pre></td></tr></table></figure>
-<p>output_arrays 和 freeze graph 时的 output_node_names 一致， input_arrays 要通过 tensorboard 查看。<br>input_type 和 inference_type 应设置成 FLOAT，但如果使用量化的模型，可设置成 QUANTIZED。模型在训练的时候要标记 “fake quantization” 结点，<br>否则无法量化。</p>
-<p>目前 quantization 还没成功，先使用 FLOAT，参考 <a href="https://www.tensorflow.org/performance/quantization" target="_blank" rel="noopener">quantization</a> 一文。</p>
-<p>错误: Squeeze op 不支持， 参考 <a href="https://github.com/tensorflow/tensorflow/issues/14761" target="_blank" rel="noopener">https://github.com/tensorflow/tensorflow/issues/14761</a><br>, 目前 mobilenet/ssd 还不支持 tflite. (Jan 4th, 2018)，可以使用 google 转好的 <a href="wget https://storage.googleapis.com/download.tensorflow.org/models/mobilenet_v1_1.0_224_frozen.tgz">v1_1.0_224</a></p>
-<p>TF Lite的finetune流程的文档很多，散落在各处，主要流程参考<a href="https://github.com/tensorflow/tensorflow/tree/master/tensorflow/contrib/lite" target="_blank" rel="noopener">tf lite doc</a></p>
-<h1 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h1><p>本文主要分析了 TF Mobile 和 TF Lite 两个框架之间的关系，基于这个两个框架的应用的架构，以及模型的转换。下一篇blog看看至关重要的数据集Dataset API。</p>
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <h1 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h1><p>AI 的烈火烧遍全球，作为程序猿一枚，自然不能坐视不理。趁着 tensorflow lite 刚发布之际，趁热打铁，学习一下这个呼声颇高的框架。本文使用的版本：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">tensorflow: 136697ecdc64b5171522fb7f89cfe51a02f0f1c1@master, (1.4.1之后的一个commit)</span><br><span class="line">bazel: 0.8.1</span><br></pre></td></tr></table></figure></p>
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2018/01/03/learn-tensorflow-1/#more" rel="contents">
+              Read more &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://waynewolf.github.io/2017/09/10/rc-bt-car/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Wayne Wolf">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Wayne's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2017/09/10/rc-bt-car/" itemprop="url">智能小车</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2017-09-10T00:00:13+08:00">
+                2017-09-10
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>前段时间心血来潮，给小朋友做了个智能小车。接下来有更有意思的事情要做，这个项目先放一下，有机会再拾起做更炫的东西！</p>
+<h2 id="展示"><a href="#展示" class="headerlink" title="展示"></a>展示</h2><p><img src="/images/post/2017-09-09/1.jpg" alt="蓝牙小车"></p>
+<p><img src="/images/post/2017-09-09/2.png" alt="手机控制界面"></p>
+<h2 id="代码"><a href="#代码" class="headerlink" title="代码"></a>代码</h2><p>代码公布在 <a href="https://bitbucket.org/waynewolf/suntoy" target="_blank" rel="noopener">bitbucket</a></p>
 
           
         
@@ -887,7 +1014,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://waynewolf.github.io/2018/01/04/toward-cutting-edge-realtime-detection-on-mobile-device/">
+    <link itemprop="mainEntityOfPage" href="http://waynewolf.github.io/2017/09/09/hexo-101/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="Wayne Wolf">
@@ -906,7 +1033,7 @@
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2018/01/04/toward-cutting-edge-realtime-detection-on-mobile-device/" itemprop="url">toward cutting edge realtime detection on mobile device</a></h1>
+                <a class="post-title-link" href="/2017/09/09/hexo-101/" itemprop="url">hexo 101</a></h1>
         
 
         <div class="post-meta">
@@ -918,8 +1045,139 @@
               
                 <span class="post-meta-item-text">Posted on</span>
               
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-01-04T10:55:04+08:00">
-                2018-01-04
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2017-09-09T22:39:32+08:00">
+                2017-09-09
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo new <span class="string">"My New Post"</span></span><br></pre></td></tr></table></figure>
+<p>More info: <a href="https://hexo.io/docs/writing.html" target="_blank" rel="noopener">Writing</a></p>
+<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
+<p>More info: <a href="https://hexo.io/docs/generating.html" target="_blank" rel="noopener">Generating</a></p>
+<h3 id="Run-test-server-locally"><a href="#Run-test-server-locally" class="headerlink" title="Run test server locally"></a>Run test server locally</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
+<p>More info: <a href="https://hexo.io/docs/server.html" target="_blank" rel="noopener">Server</a></p>
+<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
+<p>More info: <a href="https://hexo.io/docs/deployment.html" target="_blank" rel="noopener">Deployment</a></p>
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2017/09/09/hexo-101/#more" rel="contents">
+              Read more &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://waynewolf.github.io/2017/09/09/transfer-blog-to-hexo/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Wayne Wolf">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Wayne's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2017/09/09/transfer-blog-to-hexo/" itemprop="url">transfer blog to hexo</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2017-09-09T22:39:32+08:00">
+                2017-09-09
               </time>
             
 
@@ -958,14 +1216,262 @@
       
         
           
-            <ul>
-<li>skeleton copied from tflitecamera</li>
-<li>Java APP ready</li>
-<li>MobileNets/SSD porting</li>
-<li>benchmarking</li>
-</ul>
+            <p>博客站迁移至hexo，发文纪念。</p>
 
           
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://waynewolf.github.io/2014/07/10/surfaceflinger-and-hwcomposer/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Wayne Wolf">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Wayne's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2014/07/10/surfaceflinger-and-hwcomposer/" itemprop="url">surfaceflinger and hwcomposer</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2014-07-10T20:26:03+08:00">
+                2014-07-10
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <h2 id="Introduction"><a href="#Introduction" class="headerlink" title="Introduction"></a>Introduction</h2><p>In the beginning, people believes that GPU composition is fast and power effiecent compared with CPU composition. Then, people find that in most usage scenarios, GPU can be kept sleep with the introduction of more display planes. This is where HWComposer comes into play. It is linked into SurfaceFlinger as a library, and works as a judge to decide when to offload work from GPU to display hardware.</p>
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2014/07/10/surfaceflinger-and-hwcomposer/#more" rel="contents">
+              Read more &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://waynewolf.github.io/2014/06/22/surfaceflinger-and-client/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Wayne Wolf">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Wayne's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2014/06/22/surfaceflinger-and-client/" itemprop="url">surfaceflinger and client</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2014-06-22T18:43:49+08:00">
+                2014-06-22
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <h2 id="Introduction"><a href="#Introduction" class="headerlink" title="Introduction"></a>Introduction</h2><p>SurfaceFlinger is the composition and display manager of android, it mainly plays two roles in the system:</p>
+<ul>
+<li>Surface composition</li>
+<li>Buffer allocation on behalf of clients, interacts with clients through Binder interface</li>
+</ul>
+<p>This article is based on KitKat 4.4.2.</p>
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2014/06/22/surfaceflinger-and-client/#more" rel="contents">
+              Read more &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
         
       
     </div>
@@ -1003,7 +1509,7 @@
 
   
   <nav class="pagination">
-    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><span class="space">&hellip;</span><a class="page-number" href="/page/4/">4</a><a class="extend next" rel="next" href="/page/2/"><i class="fa fa-angle-right"></i></a>
+    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="extend next" rel="next" href="/page/2/"><i class="fa fa-angle-right"></i></a>
   </nav>
 
 
@@ -1049,7 +1555,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">18</span>
+                <span class="site-state-item-count">17</span>
                 <span class="site-state-item-name">posts</span>
               </a>
             </div>

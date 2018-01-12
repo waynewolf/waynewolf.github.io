@@ -103,7 +103,7 @@
 <meta property="og:description" content="BackgroundDRM(Direct Rendering Manager) is the kernel part of DRI(Direct Rendering Infrastructure) originally designed for Linux X display server. In this artical, we focus on how to use libdrm. DRM m">
 <meta property="og:locale" content="en">
 <meta property="og:image" content="http://waynewolf.github.io/assets/drm-kms-core-data-structures.png">
-<meta property="og:updated_time" content="2018-01-03T13:29:24.625Z">
+<meta property="og:updated_time" content="2018-01-12T13:14:59.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="libdrm samples">
 <meta name="twitter:description" content="BackgroundDRM(Direct Rendering Manager) is the kernel part of DRI(Direct Rendering Infrastructure) originally designed for Linux X display server. In this artical, we focus on how to use libdrm. DRM m">
@@ -355,6 +355,7 @@
 <li>Encoder: convert digital signal from CRTC to appropriate analog level, eDP, MIPI, …</li>
 <li>Connector: Physical connector like HDMI，DVI-D，VGA，S-Video</li>
 </ul>
+<a id="more"></a>
 <h2 id="librdrm"><a href="#librdrm" class="headerlink" title="librdrm"></a>librdrm</h2><p>DRM exports API through ioctl, libdrm is a user mode library to wrap these ioctls, please reference xf86drm.h in libdrm for detailed explanation. The general steps to use the libdrm are:</p>
 <ul>
 <li>open/drmOpen /dev/dri/cardN device node</li>
@@ -621,7 +622,7 @@ tcsetattr(STDIN_FILENO,TCSANOW,&amp;old_tio);
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">18</span>
+                <span class="site-state-item-count">17</span>
                 <span class="site-state-item-name">posts</span>
               </a>
             </div>

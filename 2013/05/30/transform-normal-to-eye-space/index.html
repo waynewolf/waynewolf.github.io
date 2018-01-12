@@ -103,7 +103,7 @@
 <meta property="og:description" content="ProblemVertex position coordinates can be transformed from object space to eye space using model-view matrix. However, normals can not be transformed in that way. The two pictures shows what happened">
 <meta property="og:locale" content="en">
 <meta property="og:image" content="http://waynewolf.github.io/images/post/transform-normal.gif">
-<meta property="og:updated_time" content="2018-01-03T13:29:24.629Z">
+<meta property="og:updated_time" content="2018-01-12T13:15:58.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="transform normal to eye space">
 <meta name="twitter:description" content="ProblemVertex position coordinates can be transformed from object space to eye space using model-view matrix. However, normals can not be transformed in that way. The two pictures shows what happened">
@@ -345,6 +345,7 @@
         <h2 id="Problem"><a href="#Problem" class="headerlink" title="Problem"></a>Problem</h2><p>Vertex position coordinates can be transformed from object space to eye space using model-view matrix. However, normals can not be transformed in that way.</p>
 <p>The two pictures shows what happened if we transform normal using model-view matrix:<br><img src="/images/post/transform-normal.gif" alt="transform normal" title="transform normal using model view matrix"></p>
 <p>In eye space, tangent direction is correct, but normal is not perpendicular to tangent. Why is that happening?</p>
+<a id="more"></a>
 <h2 id="Why"><a href="#Why" class="headerlink" title="Why"></a>Why</h2><p>The math equation can explain it easily. Assume T is tangent, MV is model-view matrix. P1, P2 are two vertices used to calculate tangent.</p>
 <pre><code>T = P2 - P1
 T&apos; = T * MV = (P2 - P1) * MV = P2 * MV - P1 * MV = P2&apos; - P1&apos;
@@ -475,7 +476,7 @@ T&apos; = T * MV = (P2 - P1) * MV = P2 * MV - P1 * MV = P2&apos; - P1&apos;
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">18</span>
+                <span class="site-state-item-count">17</span>
                 <span class="site-state-item-name">posts</span>
               </a>
             </div>

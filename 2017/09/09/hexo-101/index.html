@@ -78,7 +78,7 @@
 <link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css" />
 
 
-  <meta name="keywords" content="android,egl," />
+  <meta name="keywords" content="blog" />
 
 
 
@@ -94,20 +94,17 @@
 
 
 
-<meta name="description" content="In android, the application UI is used as an OpenGL ES texture, and composed by SurfaceFlinger to form final image on display. To understand how the application UI is sent to OpenGL, we have to start">
-<meta name="keywords" content="android,egl">
+<meta name="description" content="Quick StartCreate a new post1$ hexo new &quot;My New Post&quot; More info: Writing Generate static files1$ hexo generate More info: Generating Run test server locally1$ hexo server More info: Server Deploy to r">
 <meta property="og:type" content="article">
-<meta property="og:title" content="eglimage in surfaceflinger">
-<meta property="og:url" content="http://waynewolf.github.io/2014/05/17/eglimage-in-surfaceflinger/index.html">
+<meta property="og:title" content="hexo 101">
+<meta property="og:url" content="http://waynewolf.github.io/2017/09/09/hexo-101/index.html">
 <meta property="og:site_name" content="Wayne&#39;s Blog">
-<meta property="og:description" content="In android, the application UI is used as an OpenGL ES texture, and composed by SurfaceFlinger to form final image on display. To understand how the application UI is sent to OpenGL, we have to start">
+<meta property="og:description" content="Quick StartCreate a new post1$ hexo new &quot;My New Post&quot; More info: Writing Generate static files1$ hexo generate More info: Generating Run test server locally1$ hexo server More info: Server Deploy to r">
 <meta property="og:locale" content="en">
-<meta property="og:image" content="http://waynewolf.github.io/images/post/all-kinds-of-buffers.png">
-<meta property="og:updated_time" content="2018-01-12T13:13:48.000Z">
+<meta property="og:updated_time" content="2018-01-12T13:21:29.000Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="eglimage in surfaceflinger">
-<meta name="twitter:description" content="In android, the application UI is used as an OpenGL ES texture, and composed by SurfaceFlinger to form final image on display. To understand how the application UI is sent to OpenGL, we have to start">
-<meta name="twitter:image" content="http://waynewolf.github.io/images/post/all-kinds-of-buffers.png">
+<meta name="twitter:title" content="hexo 101">
+<meta name="twitter:description" content="Quick StartCreate a new post1$ hexo new &quot;My New Post&quot; More info: Writing Generate static files1$ hexo generate More info: Generating Run test server locally1$ hexo server More info: Server Deploy to r">
 
 
 
@@ -136,13 +133,13 @@
 
 
 
-  <link rel="canonical" href="http://waynewolf.github.io/2014/05/17/eglimage-in-surfaceflinger/"/>
+  <link rel="canonical" href="http://waynewolf.github.io/2017/09/09/hexo-101/"/>
 
 
 
 
 
-  <title>eglimage in surfaceflinger | Wayne's Blog</title>
+  <title>hexo 101 | Wayne's Blog</title>
   
 
 
@@ -275,7 +272,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://waynewolf.github.io/2014/05/17/eglimage-in-surfaceflinger/">
+    <link itemprop="mainEntityOfPage" href="http://waynewolf.github.io/2017/09/09/hexo-101/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="Wayne Wolf">
@@ -292,7 +289,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">eglimage in surfaceflinger</h1>
+          <h1 class="post-title" itemprop="name headline">hexo 101</h1>
         
 
         <div class="post-meta">
@@ -304,8 +301,8 @@
               
                 <span class="post-meta-item-text">Posted on</span>
               
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2014-05-17T20:01:55+08:00">
-                2014-05-17
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2017-09-09T22:39:32+08:00">
+                2017-09-09
               </time>
             
 
@@ -342,72 +339,21 @@
       
 
       
-        <p>In android, the application UI is used as an OpenGL ES texture, and composed by SurfaceFlinger to form final image on display. To understand how the application UI is sent to OpenGL, we have to start from some egl/oes extensions.</p>
+        <h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo new <span class="string">"My New Post"</span></span><br></pre></td></tr></table></figure>
+<p>More info: <a href="https://hexo.io/docs/writing.html" target="_blank" rel="noopener">Writing</a></p>
+<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
+<p>More info: <a href="https://hexo.io/docs/generating.html" target="_blank" rel="noopener">Generating</a></p>
+<h3 id="Run-test-server-locally"><a href="#Run-test-server-locally" class="headerlink" title="Run test server locally"></a>Run test server locally</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
+<p>More info: <a href="https://hexo.io/docs/server.html" target="_blank" rel="noopener">Server</a></p>
+<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
+<p>More info: <a href="https://hexo.io/docs/deployment.html" target="_blank" rel="noopener">Deployment</a></p>
 <a id="more"></a>
-<h2 id="EGL-KHR-image-base-amp-EGL-KHR-image"><a href="#EGL-KHR-image-base-amp-EGL-KHR-image" class="headerlink" title="EGL_KHR_image_base &amp; EGL_KHR_image"></a>EGL_KHR_image_base &amp; EGL_KHR_image</h2><p>The spec says:</p>
-<blockquote>
-<p>This extension defines a new EGL resource type that is suitable for<br>sharing 2D arrays of image data between client APIs, the EGLImage.<br>Although the intended purpose is sharing 2D image data, the<br>underlying interface makes no assumptions about the format or<br>purpose of the resource being shared, leaving those decisions to<br>the application and associated client APIs.</p>
-</blockquote>
-<p>This extension is used to share buffers between different client APIs. EGLImage is an opaque handle to a shared resource, presumably a 2D array of image data.</p>
-<p>EGL allows sharing context from the same client API (like OpenGL ES), however, in some cases, it may be desireable to share state between different client APIs(OpenGL ES &lt;-&gt; OpenVG). EGLImage is introduced to address this kind of complicated use cases.</p>
-<p>EGL can create EGL resources that can be shared between contexts of different client APIs from client API resources like texel arrays in OpenGL ES texture objects. The client API resources called EGLImage source. In contrast, the client API can also create resources from EGLImage, and the created resources are called EGLImage target. Refer to spec for more concepts like EGLImage sibling.</p>
-<p>New Types added:</p>
-<pre><code>typedef void* EGLImageKHR;
-</code></pre><p>New Procedures and Functions:</p>
-<pre><code>EGLImageKHR eglCreateImageKHR(
-                EGLDisplay dpy,
-                EGLContext ctx,
-                EGLenum target,
-                EGLClientBuffer buffer,
-                const EGLint *attrib_list)
-
-EGLBoolean eglDestroyImageKHR(
-                EGLDisplay dpy,
-                EGLImageKHR image)
-</code></pre><p>Please reference <a href="https://www.khronos.org/registry/egl/extensions/KHR/EGL_KHR_image_base.txt" target="_blank" rel="noopener">EGL_KHR_image_base</a> for more detailed explanation.</p>
-<h2 id="OES-EGL-image"><a href="#OES-EGL-image" class="headerlink" title="OES_EGL_image"></a>OES_EGL_image</h2><p>The spec says:</p>
-<blockquote>
-<p>This extension provides a mechanism for creating texture and renderbuffer objects sharing storage with specified EGLImage objects.<br>The companion EGL_KHR_image_base and EGL_KHR_image extensions provide the definition and rationale for EGLImage objects.</p>
-</blockquote>
-<p>This extension allows EGLImage turned into a texture.</p>
-<p>New type added:</p>
-<pre><code>typedef void* GLeglImageOES;
-</code></pre><p>New Procedures and Functions added:</p>
-<pre><code>void EGLImageTargetTexture2DOES(enum target, eglImageOES image)
-void EGLImageTargetRenderbufferStorageOES(enum target, eglImageOES image)
-</code></pre><p>glEGLImageTargetTexture2DOES serves the same purpose as the well known glTexImage2D, but supporting EGLImage. </p>
-<p>Please reference <a href="https://www.khronos.org/registry/gles/extensions/OES/OES_EGL_image.txt" target="_blank" rel="noopener">OES_EGL_image</a> for more detailed explanation.</p>
-<h2 id="OES-EGL-image-external"><a href="#OES-EGL-image-external" class="headerlink" title="OES_EGL_image_external"></a>OES_EGL_image_external</h2><p>The spec says:</p>
-<blockquote>
-<p>This extension provides a mechanism for creating EGLImage texture targets<br>from EGLImages.  This extension defines a new texture target,<br>TEXTURE_EXTERNAL_OES.  This texture target can only be specified using an<br>EGLImage.</p>
-</blockquote>
-<p>This extension defines a new texture target TEXTURE_EXTERNAL_OES, GLSL can use new type samplerExternalOES to sample the external texture. This extension depends on EGL_KHR_image_base or EGL_KHR_image.</p>
-<p>GLSL sampler type added:</p>
-<pre><code>samplerExternalOES (when #extension GL_OES_EGL_image_external is used)
-</code></pre><p>Despite the new texture target and sampler type, the intension of this extension is not clear until reading through the spec carefully. I guess the main purpose of this extension is allow driver to support color space converter. The spec says:</p>
-<blockquote>
-<p>Sampling an external texture will return an RGBA vector in the same<br>colorspace as the source image.  If the source image is stored in YUV<br>(or some other basis) then the YUV values will be transformed to RGB<br>values. (But these RGB values will be in the same colorspace as the<br>original image.  Colorspace here includes the linear or non-linear<br>encoding of the samples. For example, if the original image is in the<br>sRGB color space then the RGB value returned by the sampler will also<br>be sRGB, and if the original image is stored in ITU-R Rec. 601 YV12<br>then the RGB value returned by the sampler will be an RGB value in the<br>ITU-R Rec. 601 colorspace.) The parameters of the transformation<br>from one basis (e.g.  YUV) to RGB (color conversion matrix, sampling<br>offsets, etc) are taken from the EGLImage which is associated with the<br>external texture.  The implementation may choose to do this<br>transformation when the external texture is sampled, when the external<br>texture is bound, or any other time so long as the effect is the same.<br>It is undefined whether texture filtering occurs before or after the<br>transformation to RGB.</p>
-</blockquote>
-<p>This extension doesn’t support mipmap. The spec says:</p>
-<blockquote>
-<p>Calling GenerateMipmaps with <target> set to TEXTURE_EXTERNAL_OES results in an INVALID_ENUM</target></p>
-</blockquote>
-<p>In short, 3D driver is required to implement this color space transformation depending on the EGLImage format. Please reference <a href="https://www.khronos.org/registry/gles/extensions/OES/OES_EGL_image_external.txt" target="_blank" rel="noopener">OES_EGL_image_external</a> for more detailed explanation.</p>
-<h2 id="Android-Usage"><a href="#Android-Usage" class="headerlink" title="Android Usage"></a>Android Usage</h2><p>In android, a specific target EGL_NATIVE_BUFFER_ANDROID is used in eglCreateImageKHR, to create EGLImage from ANativeWindowBuffer.</p>
-<pre><code>eglCreateImageKHR(eglDisplay, EGL_NO_CONTEXT, EGL_NATIVE_BUFFER_ANDROID,
-    (EGLClientBuffer)&amp;sSrcBuffer,0);
-glGenTextures(1,&amp;texID);
-glBindTexture(GL_TEXTURE_2D,texID);
-glEGLImageTargetTexture2DOES(GL_TEXTURE_2D,eglSrcImage);
-</code></pre><p>If the format of EGLClientBuffer is YUV, the texture target must be GL_TEXTURE_EXTERNAL_OES. This texture target, as explained early, can only be used in glEGLImageTargetTexture2DOES. It’s illegal to use this in gl<em>Tex</em>Image*() functions.</p>
-<p>This is how OpenGL ES supports YUV format texture, the transformation work is offloaded to EGLImage in egl driver.</p>
-<h2 id="Appendix"><a href="#Appendix" class="headerlink" title="Appendix"></a>Appendix</h2><p>All kinds of buffers across the graphic stack:</p>
-<p><img src="/images/post/all-kinds-of-buffers.png" alt="all-kinds-of-buffers" title="all kinds of buffers"></p>
-<h2 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h2><ol>
-<li><a href="https://www.khronos.org/registry/egl/extensions/KHR/EGL_KHR_image_base.txt" target="_blank" rel="noopener">https://www.khronos.org/registry/egl/extensions/KHR/EGL_KHR_image_base.txt</a></li>
-<li><a href="https://www.khronos.org/registry/gles/extensions/OES/OES_EGL_image.txt" target="_blank" rel="noopener">https://www.khronos.org/registry/gles/extensions/OES/OES_EGL_image.txt</a></li>
-<li><a href="https://www.khronos.org/registry/gles/extensions/OES/OES_EGL_image_external.txt" target="_blank" rel="noopener">https://www.khronos.org/registry/gles/extensions/OES/OES_EGL_image_external.txt</a></li>
-</ol>
+<h2 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h2><ul>
+<li><a href="https://hexo.io/" target="_blank" rel="noopener">Hexo</a></li>
+<li><a href="https://hexo.io/docs/" target="_blank" rel="noopener">hexo documentation</a></li>
+<li><a href="https://qiutc.me/post/%E4%BD%BF%E7%94%A8hexo-github%E6%90%AD%E5%BB%BA%E9%9D%99%E6%80%81%E5%8D%9A%E5%AE%A2.html" target="_blank" rel="noopener">hexo and github</a></li>
+<li><a href="https://github.com/iissnan/hexo-theme-next" target="_blank" rel="noopener">hexo themes next</a></li>
+</ul>
 
       
     </div>
@@ -423,14 +369,6 @@ glEGLImageTargetTexture2DOES(GL_TEXTURE_2D,eglSrcImage);
 
     <footer class="post-footer">
       
-        <div class="post-tags">
-          
-            <a href="/tags/android/" rel="tag"># android</a>
-          
-            <a href="/tags/egl/" rel="tag"># egl</a>
-          
-        </div>
-      
 
       
       
@@ -440,8 +378,8 @@ glEGLImageTargetTexture2DOES(GL_TEXTURE_2D,eglSrcImage);
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2014/01/11/how-binder-transfer-fd-across-process-boundary/" rel="next" title="how binder transfer fd across process boundary">
-                <i class="fa fa-chevron-left"></i> how binder transfer fd across process boundary
+              <a href="/2017/09/09/transfer-blog-to-hexo/" rel="next" title="transfer blog to hexo">
+                <i class="fa fa-chevron-left"></i> transfer blog to hexo
               </a>
             
           </div>
@@ -450,8 +388,8 @@ glEGLImageTargetTexture2DOES(GL_TEXTURE_2D,eglSrcImage);
 
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/2014/06/22/surfaceflinger-and-client/" rel="prev" title="surfaceflinger and client">
-                surfaceflinger and client <i class="fa fa-chevron-right"></i>
+              <a href="/2017/09/10/rc-bt-car/" rel="prev" title="智能小车">
+                智能小车 <i class="fa fa-chevron-right"></i>
               </a>
             
           </div>
@@ -623,7 +561,7 @@ glEGLImageTargetTexture2DOES(GL_TEXTURE_2D,eglSrcImage);
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#EGL-KHR-image-base-amp-EGL-KHR-image"><span class="nav-number">1.</span> <span class="nav-text">EGL_KHR_image_base &amp; EGL_KHR_image</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#OES-EGL-image"><span class="nav-number">2.</span> <span class="nav-text">OES_EGL_image</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#OES-EGL-image-external"><span class="nav-number">3.</span> <span class="nav-text">OES_EGL_image_external</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Android-Usage"><span class="nav-number">4.</span> <span class="nav-text">Android Usage</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Appendix"><span class="nav-number">5.</span> <span class="nav-text">Appendix</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Reference"><span class="nav-number">6.</span> <span class="nav-text">Reference</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Quick-Start"><span class="nav-number">1.</span> <span class="nav-text">Quick Start</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Create-a-new-post"><span class="nav-number">1.1.</span> <span class="nav-text">Create a new post</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Generate-static-files"><span class="nav-number">1.2.</span> <span class="nav-text">Generate static files</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Run-test-server-locally"><span class="nav-number">1.3.</span> <span class="nav-text">Run test server locally</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Deploy-to-remote-sites"><span class="nav-number">1.4.</span> <span class="nav-text">Deploy to remote sites</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Reference"><span class="nav-number">2.</span> <span class="nav-text">Reference</span></a></li></ol></div>
             
 
           </div>

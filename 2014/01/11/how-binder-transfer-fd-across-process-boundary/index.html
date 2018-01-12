@@ -102,7 +102,7 @@
 <meta property="og:site_name" content="Wayne&#39;s Blog">
 <meta property="og:description" content="ProblemAndroid ashmem can map file descriptor to share memory across process boundary. Android binder help transfer fds between different processes, this is very basic and important infrastructure for">
 <meta property="og:locale" content="en">
-<meta property="og:updated_time" content="2018-01-03T13:29:24.625Z">
+<meta property="og:updated_time" content="2018-01-12T13:14:21.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="how binder transfer fd across process boundary">
 <meta name="twitter:description" content="ProblemAndroid ashmem can map file descriptor to share memory across process boundary. Android binder help transfer fds between different processes, this is very basic and important infrastructure for">
@@ -341,6 +341,7 @@
 
       
         <h2 id="Problem"><a href="#Problem" class="headerlink" title="Problem"></a>Problem</h2><p>Android ashmem can map file descriptor to share memory across process boundary. Android binder help transfer fds between different processes, this is very basic and important infrastructure for graphic buffer sharing in android. However, fd cannot be sent across processes by socket without extra code, how does binder do this?</p>
+<a id="more"></a>
 <h2 id="Principle"><a href="#Principle" class="headerlink" title="Principle"></a>Principle</h2><p>fd cannot be shared between processes, but kernel <code>struct file *</code> pointer can.</p>
 <h2 id="Sample-Code"><a href="#Sample-Code" class="headerlink" title="Sample Code"></a>Sample Code</h2><pre><code>struct file *file = fget(fd_in_process_a);
 int fd_in_process_b = task_get_unused_fd_flags(target_proc, O_CLOEXEC);
@@ -470,7 +471,7 @@ task_fd_install(target_proc, fd_in_process_b, file);
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">18</span>
+                <span class="site-state-item-count">17</span>
                 <span class="site-state-item-name">posts</span>
               </a>
             </div>

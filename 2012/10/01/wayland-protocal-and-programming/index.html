@@ -109,7 +109,7 @@
 <meta property="og:image" content="http://waynewolf.github.io/images/post/gles-egl-buffer-residence-and-init-sequence.png">
 <meta property="og:image" content="http://waynewolf.github.io/images/post/drm-kms-core-data-structures.png">
 <meta property="og:image" content="http://waynewolf.github.io/images/post/egl-gbm-surface-page-flip.png">
-<meta property="og:updated_time" content="2018-01-03T13:29:24.629Z">
+<meta property="og:updated_time" content="2018-01-12T13:16:12.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="wayland protocal and programming">
 <meta name="twitter:description" content="Written in 2012 before wayland 1.0 released, most of them are outdated as in May 2017. wayland是异步的面向对象的协议，所有请求都是在某个对象上的方法调用。每个对象实现一个接口，描述一系列操作。请求包含对象id，唯一标识服务器上的一个对象，还包括opcode，指出在对象上调用的方法。server向clien">
@@ -350,6 +350,7 @@
       
         <p>Written in 2012 before wayland 1.0 released, most of them are outdated as in May 2017.</p>
 <p>wayland是异步的面向对象的协议，所有请求都是在某个对象上的方法调用。每个对象实现一个接口，描述一系列操作。请求包含对象id，唯一标识服务器上的一个对象，还包括opcode，指出在对象上调用的方法。server向client发”事件”，每个事件都依附于一个对象。事件可以是出错信息，也可以是其他通知，事件包含对象id和opcode，client可以通过这些信息判断事件的类型。事件可以是对请求的响应(就像http的request和response一样，构成一个来回)，也可以是server自发的。</p>
+<a id="more"></a>
 <h1 id="1-简介"><a href="#1-简介" class="headerlink" title="1 简介"></a>1 简介</h1><p>关于wayland的架构，请查看 wayland.freedesktop.org.</p>
 <h1 id="2-协议分析"><a href="#2-协议分析" class="headerlink" title="2 协议分析"></a>2 协议分析</h1><p>wayland 协议采用xml描述，结构化较好，在研究wayland代码之前看一下这个xml文件有助于理清思路。先了解wayland协议中的几个概念。<br>客户端(client): 需要在屏幕上绘图的普通程序<br>服务器(server, compositor): wayland协议的核心程序，负责多个客户端绘图的合成，并输出到显示器，下文中compositor和server含义相同。<br>请求(request): 由客户端发起的wayland通讯<br>事件(event): 服务器发起，客户端选择性接收的异步通知，本文有时用“通知”代替<br>枚举(enum)：定义了一些常量<br>接口(interface)：请求，事件，和枚举值的集合<br>表面(surface): 显示在屏幕上的一副图画，具有位置，大小，和像素内容<br>wayland架构中，有多种协议存在，client和server之间有协议，EGL和server之间有协议，server和shell之间也有协议，等等。这里只列出几个常用的，它们之间的关系如图：</p>
 <p><img src="/images/post/wayland-component-protocols.png" alt="component protocols"></p>
@@ -771,7 +772,7 @@ drmModeSetCrtc(fd, encoder-&gt;crtc_id, fb_id, 0, 0,
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">18</span>
+                <span class="site-state-item-count">17</span>
                 <span class="site-state-item-name">posts</span>
               </a>
             </div>
